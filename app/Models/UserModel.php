@@ -30,7 +30,7 @@ class UserModel {
         return $query->getResultArray();
     }
 
-    // public function getAllUsers() {
+    // public function getAll() {
     //     $stmt = $db->prepare("SELECT * FROM users");
     //     $stmt->execute();
     //     return $stmt->fetchAll(PDO::FETCH_ASSOC);

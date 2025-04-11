@@ -9,7 +9,6 @@
     
     class UserService extends ResourceController
     {
-        //protected $format = 'json';
         private UserController $userController;
         private Request $req;
         private Response $res;
