@@ -95,7 +95,7 @@ class TaskValidator
             return $this->res;
         }
 
-        if (property_exists($taskData, 'description') && !$this->isMaxLengthValid($taskData->description, 1000)) {
+        if (property_exists($taskData, 'description') && !$this->isMaxLengthValid($taskData->description, 255)) {
             $this->res->code = 422;
             $this->res->message = "La descripcion es muy larga";
             $this->res->areDataValid = false;
