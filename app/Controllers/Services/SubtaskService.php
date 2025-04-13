@@ -64,7 +64,7 @@ class SubtaskService extends ResourceController
 
     public function create()
     {
-        $requiredProperties = ['description', 'stat', 'task', 'asignee'];
+        $requiredProperties = ['description', 'stat', 'task', 'assignee'];
         if (!$this->req->isRequestValid("create", $this->request, $requiredProperties)) {
             $this->res->code = 400;
             $this->res->message = "Formato invalido";
@@ -84,7 +84,7 @@ class SubtaskService extends ResourceController
 
     public function update($id = null)
     {
-        if (!$this->req->isRequestValid("update", $this->request, ['description', 'stat', 'priority', 'expiration_date', 'cmt', 'task', 'asignee'], $id)) {
+        if (!$this->req->isRequestValid("update", $this->request, ['description', 'stat', 'priority', 'expiration_date', 'cmt', 'assignee'], $id)) {
             $this->res->code = 400;
             $this->res->message = "Formato invalido";
 
@@ -93,8 +93,8 @@ class SubtaskService extends ResourceController
                 ->setStatusCode($this->res->code);
         }
 
-        $taskData = json_decode(json_encode($this->request->getJSON(true)));
-        $this->res = $this->subtaskController->update($id, $taskData);
+        $subtaskData = json_decode(json_encode($this->request->getJSON(true)));
+        $this->res = $this->subtaskController->update($id, $subtaskData);
 
         return $this->response
             ->setJSON($this->res, true)

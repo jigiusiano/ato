@@ -18,3 +18,9 @@ $routes->get('/tasks/(:num)', 'Services\TaskService::show/$1');     // Obtener u
 $routes->post('/tasks', 'Services\TaskService::create');            // Crear un nuevo tarea (POST /tasks)
 $routes->put('/tasks/(:num)', 'Services\TaskService::update/$1');   // Actualizar un tarea por ID (PUT /tasks/5)
 $routes->delete('tasks/(:num)', 'Services\TaskService::delete/$1'); // Eliminar un tarea por ID (DELETE /tasks/5)
+
+$routes->get('/subtasks', 'Services\SubtaskService::index');              // Obtener todos los tareas (GET /subtasks)
+$routes->get('/subtasks/(:num)', 'Services\SubtaskService::show/$1');     // Obtener un tarea por ID (GET /subtasks/5)
+$routes->post('/subtasks', 'Services\SubtaskService::create');            // Crear un nuevo tarea (POST /subtasks)
+$routes->put('/subtasks/(:num)', 'Services\SubtaskService::update/$1');   // Actualizar un tarea por ID (PUT /subtasks/5)
+$routes->delete('subtasks/(:num)', 'Services\SubtaskService::delete/$1'); // Eliminar un tarea por ID (DELETE /subtasks/5)

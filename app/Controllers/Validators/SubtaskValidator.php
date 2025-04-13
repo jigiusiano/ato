@@ -44,6 +44,14 @@ class SubtaskValidator
         return $dateTime && $dateTime->format('Y-m-d H:i:s') === $date;
     }
 
+    private function isExpirationDateValid(string $subtaskExpirationDate, string $taskExpirationDate): bool
+    {
+        $subtaskDateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $subtaskExpirationDate);
+        $taskDateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $taskExpirationDate);
+
+        return $subtaskDateTime <= $taskDateTime;
+    }
+
     private function isPriorityValid(int $priority): bool
     {
         $validPriorities = $this->taskPriorityModel->getIds();
@@ -61,12 +69,12 @@ class SubtaskValidator
         return count($this->taskModel->getById($task)) > 0;
     }
 
-    private function isAsigneeValid(int $asignee): bool
+    private function isAssigneeValid(int $assignee): bool
     {
-        return count($this->userModel->getById($asignee)) > 0;
+        return count($this->userModel->getById($assignee)) > 0;
     }
 
-    public function validateData($subtaskData, bool $isUpdate = false): Response
+    public function validateData($subtaskData, bool $isUpdate = false, $task = null): Response
     {
         if (property_exists($subtaskData, 'description') && !$this->isMaxLengthValid($subtaskData->description, 255)) {
             $this->res->code = 422;
@@ -108,6 +116,14 @@ class SubtaskValidator
             return $this->res;
         }
 
+        if (property_exists($subtaskData, 'expiration_date') && !$this->isExpirationDateValid($subtaskData->expiration_date, $task['expiration_date'])) {
+            $this->res->code = 422;
+            $this->res->message = "La fecha de expiracion debe ser menor o igual a la fecha de expiracion de la tarea principal";
+            $this->res->areDataValid = false;
+
+            return $this->res;
+        }
+
         if (property_exists($subtaskData, 'cmt') && !$this->isMaxLengthValid($subtaskData->cmt, 255)) {
             $this->res->code = 422;
             $this->res->message = "El comentario es muy largo";
@@ -124,7 +140,7 @@ class SubtaskValidator
             return $this->res;
         }
 
-        if (property_exists($subtaskData, 'task') && !$this->isTaskValid($subtaskData->owner) && !$isUpdate) {
+        if (property_exists($subtaskData, 'task') && !$this->isTaskValid($subtaskData->task) && !$isUpdate) {
             $this->res->code = 422;
             $this->res->message = "La tarea no existe";
             $this->res->areDataValid = false;
@@ -142,7 +158,7 @@ class SubtaskValidator
             return $this->res;
         }
 
-        if (property_exists($subtaskData, 'asignee') && !$this->isAsigneeValid($subtaskData->asignee)) {
+        if (property_exists($subtaskData, 'assignee') && !$this->isAssigneeValid($subtaskData->assignee)) {
             $this->res->code = 422;
             $this->res->message = "El responsable no existe";
             $this->res->areDataValid = false;

@@ -2,18 +2,21 @@
 
 namespace App\Controllers;
 
+use App\Models\TaskModel;
 use App\Models\SubtaskModel;
 use App\Utils\Response;
 use App\Controllers\Validators\SubtaskValidator;
 
 class SubtaskController
 {
+    private TaskModel $taskModel;
     private SubtaskModel $subtaskModel;
     private SubtaskValidator $subtaskValidator;
     private Response $res;
 
     public function __construct()
     {
+        $this->taskModel = new TaskModel();
         $this->subtaskModel = new SubtaskModel();
         $this->subtaskValidator = new SubtaskValidator();
         $this->res = new Response();
@@ -37,7 +40,6 @@ class SubtaskController
 
             return $this->res;
         } catch (\Throwable $th) {
-            echo $th->getMessage();
             $this->res->code = 500;
             $this->res->message = "Ocurrio un error al buscar las subtareas";
 
@@ -97,7 +99,23 @@ class SubtaskController
 
     public function create($subtaskData): Response
     {
-        $this->res = $this->subtaskValidator->validateData($subtaskData);
+        try {
+            $task = $this->taskModel->getById($subtaskData->task);
+
+            if (count($task) == 0) {
+                $this->res->code = 404;
+                $this->res->message = "La tarea principal no existe";
+
+                return $this->res;
+            }
+        } catch (\Throwable $th) {
+            $this->res->code = 500;
+            $this->res->message = "Ocurrio un error al encontrar la tarea principal";
+
+            return $this->res;
+        }
+
+        $this->res = $this->subtaskValidator->validateData($subtaskData, false, $task[0]);
 
         // Si la validación falla, se devuelve el error
         if (!$this->res->areDataValid) {
@@ -122,7 +140,39 @@ class SubtaskController
     public function update($id, $subtaskData): Response
     {
         try {
-            $this->res = $this->subtaskValidator->validateData($subtaskData, true);
+            $subtask = $this->subtaskModel->getById($id);
+
+            if (count($subtask) == 0) {
+                $this->res->code = 404;
+                $this->res->message = "La subtarea no existe";
+
+                return $this->res;
+            }
+
+            try {
+                $task = $this->taskModel->getById($subtask[0]["task"]);
+    
+                if (count($task) == 0) {
+                    $this->res->code = 404;
+                    $this->res->message = "La tarea principal no existe";
+    
+                    return $this->res;
+                }
+            } catch (\Throwable $th) {
+                $this->res->code = 500;
+                $this->res->message = "Ocurrio un error al encontrar la tarea principal";
+    
+                return $this->res;
+            }
+        } catch (\Throwable $th) {
+            $this->res->code = 500;
+            $this->res->message = "Ocurrio un error al encontrar la subtarea";
+
+            return $this->res;
+        }
+
+        try {
+            $this->res = $this->subtaskValidator->validateData($subtaskData, true, $task[0]);
 
             // Si la validación falla, se devuelve el error
             if (!$this->res->areDataValid) {

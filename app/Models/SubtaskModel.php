@@ -49,7 +49,7 @@ class SubtaskModel
 
     public function getAllByIDTask($task): array
     {
-        $sql = "SELECT * FROM subtasks WHERE owner = ?";
+        $sql = "SELECT * FROM subtasks WHERE task = ?";
         $query = $this->db->query($sql, [$task]);
 
         return $query->getResultArray();
