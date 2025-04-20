@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Gestión de Tareas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">Gestión de Tareas</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="profile.html">Perfil</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link" onclick="logout()">Cerrar Sesión</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container mt-4">
+        <!-- Botón para crear tarea -->
+        <div class="d-flex justify-content-between mb-3">
+            <h2>Mis Tareas</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">Crear Tarea</button>
+        </div>
+
+        <!-- Invitaciones pendientes -->
+        <div class="mb-4">
+            <h4>Invitaciones Pendientes</h4>
+            <div id="invitationsList" class="list-group"></div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="mb-3">
+            <label for="sortTasks" class="form-label">Ordenar por:</label>
+            <select id="sortTasks" class="form-select w-auto d-inline-block" onchange="loadTasks()">
+                <option value="expiration_date">Fecha de Vencimiento</option>
+                <option value="priority">Prioridad</option>
+                <option value="subject">Asunto</option>
+            </select>
+        </div>
+
+        <!-- Lista de tareas -->
+        <div id="tasksList" class="row"></div>
+    </div>
+
+    <!-- Modal para crear tarea -->
+    <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTaskModalLabel">Crear Nueva Tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTaskForm">
+                        <div class="mb-3">
+                            <label for="taskSubject" class="form-label">Asunto</label>
+                            <input type="text" class="form-control" id="taskSubject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="taskDescription" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskPriority" class="form-label">Prioridad</label>
+                            <select class="form-select" id="taskPriority" required>
+                                <option value="1">Baja</option>
+                                <option value="2">Normal</option>
+                                <option value="3">Alta</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskExpirationDate" class="form-label">Fecha de Vencimiento</label>
+                            <input type="date" class="form-control" id="taskExpirationDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskReminderDate" class="form-label">Fecha de Recordatorio (Opcional)</label>
+                            <input type="date" class="form-control" id="taskReminderDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskColor" class="form-label">Color</label>
+                            <input type="color" class="form-control form-control-color" id="taskColor" value="#007bff">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear Tarea</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear subtarea -->
+    <div class="modal fade" id="createSubtaskModal" tabindex="-1" aria-labelledby="createSubtaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createSubtaskModalLabel">Crear Subtarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createSubtaskForm">
+                        <input type="hidden" id="subtaskTaskId">
+                        <div class="mb-3">
+                            <label for="subtaskDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="subtaskDescription" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subtaskPriority" class="form-label">Prioridad (Opcional)</label>
+                            <select class="form-select" id="subtaskPriority">
+                                <option value="">Ninguna</option>
+                                <option value="1">Baja</option>
+                                <option value="2">Normal</option>
+                                <option value="3">Alta</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subtaskExpirationDate" class="form-label">Fecha de Vencimiento (Opcional)</label>
+                            <input type="date" class="form-control" id="subtaskExpirationDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="subtaskAssignee" class="form-label">Asignar a</label>
+                            <select class="form-select" id="subtaskAssignee" required>
+                                <!-- Llenado dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subtaskComment" class="form-label">Comentario (Opcional)</label>
+                            <textarea class="form-control" id="subtaskComment"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear Subtarea</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para invitar colaborador -->
+    <div class="modal fade" id="inviteCollaboratorModal" tabindex="-1" aria-labelledby="inviteCollaboratorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inviteCollaboratorModalLabel">Invitar Colaborador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="inviteCollaboratorForm">
+                        <input type="hidden" id="inviteTaskId">
+                        <div class="mb-3">
+                            <label for="inviteEmail" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="inviteEmail" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Enviar Invitación</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/scripts.js"></script>
+</body>
+</html>

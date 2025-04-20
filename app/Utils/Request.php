@@ -43,22 +43,27 @@ class Request
                     return false;
                 }
 
-                foreach ($data as $property => $value) {
-                    if (!in_array($property, $requiredProperties)) {
+                if (is_array($data) || is_object($data)) {
+                    foreach ($data as $property => $value) {
+                        if (!in_array($property, $requiredProperties)) {
+                            return false;
+                        }
+                    }
+                }
+
+                if (is_array($requiredProperties) || is_object($requiredProperties)) {
+                    foreach ($requiredProperties as $property) {
+                        if (array_key_exists($property, $data)) {
+                            $foundProperty = true;
+                            break;
+                        }
+                    }
+
+                    if (!$foundProperty && count($requiredProperties) > 0) {
                         return false;
                     }
                 }
 
-                foreach ($requiredProperties as $property) {
-                    if (array_key_exists($property, $data)) {
-                        $foundProperty = true;
-                        break;
-                    }
-                }
-
-                if (!$foundProperty) {
-                    return false;
-                }
                 break;
             case 'delete':
                 // Verifico que el id sea un numero y entero
