@@ -8,6 +8,7 @@ class Response
     public string $message;
     public mixed $data;
     public string $areDataValid;
+    public ?array $cookie;
 
     public function __construct(){}
 }

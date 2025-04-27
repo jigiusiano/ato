@@ -13,7 +13,7 @@ class UserModel {
 
     public function create(string $name, string $surname, string $email, string $pass): void {
         $sql = "INSERT INTO users (name, surname, email, pass) VALUES (?, ?, ?, ?)";
-        $this->db->query($sql, [$name, $surname, $email, $pass]);
+        $this->db->query($sql, [$name, $surname, $email, password_hash($pass, PASSWORD_DEFAULT)]);
     }
 
     public function getById($id): array {

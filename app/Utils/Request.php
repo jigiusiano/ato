@@ -18,8 +18,12 @@ class Request
         }
 
         switch ($operation) {
-            case 'index':
-                # code...
+            case 'login':
+                foreach ($requiredProperties as $property) {
+                    if (!array_key_exists($property, $data)) {
+                        return false;
+                    }
+                }
                 break;
             case 'show':
                 // Verifico que el id sea un numero y entero
