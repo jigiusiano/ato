@@ -52,6 +52,7 @@
                 <option value="expiration_date">Fecha de Vencimiento</option>
                 <option value="priority">Prioridad</option>
                 <option value="subject">Asunto</option>
+                <option value="color">Color</option>
             </select>
         </div>
 
@@ -87,11 +88,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="taskExpirationDate" class="form-label">Fecha de Vencimiento</label>
-                            <input type="date" class="form-control" id="taskExpirationDate" required>
+                            <input type="datetime-local" class="form-control" id="taskExpirationDate" required>
                         </div>
                         <div class="mb-3">
                             <label for="taskReminderDate" class="form-label">Fecha de Recordatorio (Opcional)</label>
-                            <input type="date" class="form-control" id="taskReminderDate">
+                            <input type="datetime-local" class="form-control" id="taskReminderDate">
                         </div>
                         <div class="mb-3">
                             <label for="taskColor" class="form-label">Color</label>

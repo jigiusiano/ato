@@ -65,7 +65,7 @@ class TaskService extends ResourceController
     public function create()
     {
 
-        $requiredProperties = ['subject', 'description', 'priority', 'stat', 'expiration_date', 'color', 'owner'];
+        $requiredProperties = ['subject', 'description', 'priority', 'expiration_date', 'color', 'owner'];
         if (!$this->req->isRequestValid("create", $this->request, $requiredProperties)) {
             $this->res->code = 400;
             $this->res->message = "Formato invalido";

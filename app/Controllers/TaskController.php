@@ -25,8 +25,9 @@ class TaskController
             $tasks = $this->taskModel->getAllByIDUser($owner);
 
             if (count($tasks) == 0) {
-                $this->res->code = 404;
+                $this->res->code = 200;
                 $this->res->message = "No hay tareas registradas para este usuario";
+                $this->res->data = [];
 
                 return $this->res;
             }
@@ -51,8 +52,9 @@ class TaskController
             $tasks = $this->taskModel->getAll();
 
             if (count($tasks) == 0) {
-                $this->res->code = 404;
+                $this->res->code = 200;
                 $this->res->message = "No hay tareas registradas";
+                $this->res->data = [];
 
                 return $this->res;
             }

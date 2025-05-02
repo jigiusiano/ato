@@ -22,19 +22,16 @@ const mockUsers = [
 
 const mockUser = { ID_user: 1, name: "Juan Pérez", email: "juan@example.com" };
 
-// Funciones de autenticación
 function login(event) {
     event.preventDefault();
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
 
-    // Validar email
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
         alert('Por favor, ingrese un correo electrónico válido.');
         return;
     }
 
-    // Enviar solicitud al backend
     fetch(`${URL_BASE}/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,7 +58,6 @@ function register(event) {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
 
-    // Validaciones
     if (name.trim() === '') {
         alert('El nombre no puede estar vacío.');
         return;
@@ -79,7 +75,6 @@ function register(event) {
         return;
     }
 
-    // Enviar solicitud al backend
     fetch(`${URL_BASE}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +94,6 @@ function register(event) {
 }
 
 function logout() {
-    // Enviar solicitud al backend
     fetch(`${URL_BASE}/deauth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -112,31 +106,47 @@ function logout() {
         .catch(error => alert('Error al cerrar sesión: ' + error));
 }
 
-// Funciones para Home
-function loadTasks() {
-    const sortBy = document.getElementById('sortTasks').value;
-    // Obtener tareas desde el backend (simulado)
-    const tasks = mockTasks.filter(task => task.owner === mockUser.ID_user || mockSubtasks.some(st => st.task === task.ID_task && st.assignee === mockUser.ID_user)).sort((a, b) => {
-        if (sortBy === 'expiration_date') return new Date(a.expiration_date) - new Date(b.expiration_date);
-        if (sortBy === 'priority') return b.priority - a.priority;
-        return a.subject.localeCompare(b.subject);
-    });
+async function loadTasks() {
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
 
-    const tasksList = document.getElementById('tasksList');
-    tasksList.innerHTML = '';
+    const data = await fetch(`${URL_BASE}/tasks?owner=${user_id}`, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code == 200) {
+                return response.data;
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error al cargar las tareas', 4000, 'error'));
 
-    tasks.forEach(task => {
-        const isOwner = task.owner === mockUser.ID_user;
-        const card = document.createElement('div');
-        card.className = `col-md-6 task-card ${task.priority === 3 ? 'priority-high' : ''}`;
-        card.style.borderLeftColor = task.color;
-        card.innerHTML = `
+
+    if (data.length > 0) {
+        const sortBy = document.getElementById('sortTasks').value;
+
+        const tasks = data.sort((a, b) => {
+            if (sortBy === 'expiration_date') return new Date(a.expiration_date) - new Date(b.expiration_date);
+            if (sortBy === 'priority') return b.priority - a.priority;
+            if (sortBy === 'subject') return a.subject.localeCompare(b.subject);
+            if (sortBy === 'color') return a.color.localeCompare(b.color);
+        });
+
+        const tasksList = document.getElementById('tasksList');
+        tasksList.innerHTML = '';
+
+        tasks.forEach(task => {
+            const isOwner = task.owner === user_id;
+            const card = document.createElement('div');
+            card.className = "col-md-6 task-card";
+            card.style.border = "none";
+            card.innerHTML = `
             <div class="card shadow">
                 <div class="card-body">
+                    <span class="badge" style="position: absolute; right: 20px; border-radius: 100px; width: 20px; height: 20px; background-color: ${task.color};"> </span>
                     <h5 class="card-title">${task.subject}</h5>
                     <p class="card-text">${task.description}</p>
-                    <p><strong>Prioridad:</strong> ${['Baja', 'Normal', 'Alta'][task.priority - 1]}</p>
-                    <p><strong>Estado:</strong> ${['Definido', 'En proceso', 'Completada'][task.stat - 1]}</p>
+                    <p><strong>Prioridad:</strong> <span style="border-radius: ${task.priority == 3 ? '10px' : ''}; padding: ${task.priority == 3 ? '2px 10px' : ''}; color: ${task.priority == 3 ? '#FFFFFF' : ''}; background-color: ${task.priority == 3 ? '#dc3545' : ''}; font-weight: ${task.priority == 3 ? 'bold' : 'normal'};">${['Baja', 'Normal', 'Alta'][task.priority - 1]}</span></p>
+                    <p><strong>Estado:</strong> <span>${['Definido', 'En proceso', 'Completada'][task.stat - 1]}</span></p>
                     <p><strong>Vencimiento:</strong> ${task.expiration_date}</p>
                     ${task.reminder_date ? `<p><strong>Recordatorio:</strong> ${task.reminder_date}</p>` : ''}
                     <div class="btn-group">
@@ -153,8 +163,9 @@ function loadTasks() {
                 <div id="subtasks-${task.ID_task}" class="subtask-list collapse"></div>
             </div>
         `;
-        tasksList.appendChild(card);
-    });
+            tasksList.appendChild(card);
+        });
+    }
 }
 
 function toggleSubtasks(taskId) {
@@ -290,48 +301,51 @@ function inviteCollaborator(event) {
 
 function createTask(event) {
     event.preventDefault();
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+
     const task = {
         subject: document.getElementById('taskSubject').value,
         description: document.getElementById('taskDescription').value,
         priority: parseInt(document.getElementById('taskPriority').value),
         expiration_date: document.getElementById('taskExpirationDate').value,
-        reminder_date: document.getElementById('taskReminderDate').value || null,
         color: document.getElementById('taskColor').value,
-        owner: mockUser.ID_user,
-        stat: 1,
-        archived: 0
+        owner: user_id
     };
+
+    const reminder_date = document.getElementById('taskReminderDate').value || null;
+    if (reminder_date) {
+        task.reminder_date = reminder_date;
+    }
 
     // Validaciones
     if (!task.subject.trim() || !task.description.trim()) {
-        alert('Asunto y descripción son obligatorios.');
+        showToast('Asunto y descripción son obligatorios', 4000, 'warning');
         return;
     }
     if (!task.expiration_date) {
-        alert('La fecha de vencimiento es obligatoria.');
+        showToast('La fecha de vencimiento es obligatoria', 4000, 'warning');
         return;
     }
 
     // Enviar al backend
-    fetch('/api/tasks', {
+    fetch(`${URL_BASE}/tasks`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify(task)
     })
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Tarea creada exitosamente.');
+        .then(response => {
+            if (response.code == 201) {
+                showToast(response.message, 4000, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
                 loadTasks();
             } else {
-                alert('Error al crear la tarea.');
+                showToast(response.message, 4000, 'error');
             }
         })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function editTask(taskId) {
@@ -542,9 +556,9 @@ function updateProfile(event) {
         .then(response => response.json())
         .then(response => {
             if (response.code === 200) {
-                showToast(response?.message, 5000, 'success');   
+                showToast(response?.message, 5000, 'success');
             } else {
-                showToast(response?.message, 5000,'error');
+                showToast(response?.message, 5000, 'error');
             }
         })
         .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
@@ -572,9 +586,9 @@ function changePassword(event) {
         .then(response => response.json())
         .then(response => {
             if (response.code == 200) {
-                showToast(response?.message, 5000,'success');
+                showToast(response?.message, 5000, 'success');
             } else {
-                showToast(response?.message, 5000,'error');
+                showToast(response?.message, 5000, 'error');
             }
         })
         .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
