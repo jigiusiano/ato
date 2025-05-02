@@ -44,6 +44,31 @@ class UserController
         }
     }
 
+    public function showByEmail($email): Response
+    {
+        try {
+            $user = $this->userModel->getUserByEmail($email);
+
+            if (count($user) == 0) {
+                $this->res->code = 404;
+                $this->res->message = "El usuario no existe";
+
+                return $this->res;
+            }
+
+            $this->res->code = 200;
+            $this->res->message = "El usuario fue encontrado con exito";
+            $this->res->data = $user[0];
+
+            return $this->res;
+        } catch (\Throwable $th) {
+            $this->res->code = 500;
+            $this->res->message = "Ocurrio un error al buscar el usuario";
+
+            return $this->res;
+        }
+    }
+
     public function create($userData): Response
     {
         $this->res = $this->userValidator->validateData($userData);
@@ -76,16 +101,16 @@ class UserController
     public function update($id, $userData): Response
     {
         try {
-            $user = $this->userModel->getById($id);
+            $user_db = $this->userModel->getById($id);
 
-            if (count($user) == 0) {
+            if (count($user_db) == 0) {
                 $this->res->code = 404;
                 $this->res->message = "El usuario no existe";
 
                 return $this->res;
             }
 
-            $this->res = $this->userValidator->validateData($userData);
+            $this->res = $this->userValidator->validateData($userData, $user_db[0]);
 
             // Si la validación falla, se devuelve el error
             if (!$this->res->areDataValid) {
@@ -99,7 +124,7 @@ class UserController
                 );
 
                 $this->res->code = 200;
-                $this->res->message = "El usuario se actualió con exito";
+                $this->res->message = "El usuario se actualizó con exito";
 
                 return $this->res;
             } catch (\Throwable $th) {

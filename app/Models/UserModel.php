@@ -42,7 +42,12 @@ class UserModel {
 
         foreach ($userData as $key => $value) {
             $fields[] = "$key = ?";
-            $values[] = $value;
+
+            if ($key === 'pass') {
+                $values[] = password_hash($value, PASSWORD_DEFAULT);;
+            } else {
+                $values[] = $value;
+            }
         }
 
         $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE ID_user = ?";

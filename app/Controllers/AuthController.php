@@ -24,6 +24,44 @@ class AuthController extends ResourceController implements FilterInterface
         $this->res = new Response();
     }
 
+    public function register($userData): Response
+    {
+        $key = getenv('JWT_SECRET');
+        $payload = [
+            'iat' => time(),
+            'exp' => time() + (int) getenv('JWT_TIME_TO_LIVE'), // Expiración
+            'data' => [
+                'id' => $userData["ID_user"],
+                'email' => $userData["email"]
+            ]
+        ];
+
+        $token = JWT::encode($payload, $key, 'HS256');
+
+        // Configurar cookie segura
+        $cookie = [
+            'name' => 'jwt_token',
+            'value' => $token,
+            'expire' => (int) getenv('JWT_TIME_TO_LIVE'),
+            'domain' => '',
+            'path' => '/',
+            'secure' => true, // Solo HTTPS
+            'httponly' => true, // No accesible desde JavaScript
+            'samesite' => 'Strict' // Protección contra CSRF
+        ];
+
+        $this->res->code = 201;
+        $this->res->message = "Login exitoso";
+        $this->res->data = [
+            'user' => [
+                'id' => $userData["ID_user"],
+            ],
+        ];
+        $this->res->cookie = $cookie;
+
+        return $this->res;
+    }
+
     public function login($userData)
     {
         $user = $this->userModel->getUserByEmail($userData->email);
@@ -61,8 +99,29 @@ class AuthController extends ResourceController implements FilterInterface
         $this->res->code = 200;
         $this->res->message = "Login exitoso";
         $this->res->data = [
-            "token" => $token
+            'user' => [
+                'id' => $user[0]['ID_user'],
+            ],
         ];
+        $this->res->cookie = $cookie;
+
+        return $this->res;
+    }
+
+    public function logout()
+    {
+        $cookie = [
+            'name' => 'jwt_token',
+            'value' => '',
+            'domain' => '',
+            'path' => '/',
+            'secure' => true, // Solo HTTPS
+            'httponly' => true, // No accesible desde JavaScript
+            'samesite' => 'Strict' // Protección contra CSRF
+        ];
+
+        $this->res->code = 200;
+        $this->res->message = "Logout exitoso";
         $this->res->cookie = $cookie;
 
         return $this->res;

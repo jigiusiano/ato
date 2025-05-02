@@ -41,7 +41,7 @@ class UserValidator
         return count($this->userModel->getUserByEmail($email)) > 0;
     }
 
-    public function validateData($userData): Response
+    public function validateData($userData, $user_db = null): Response
     {
         if (property_exists($userData, 'name') && !$this->isMaxLengthValid($userData->name, 255)) {
             $this->res->code = 422;
@@ -100,12 +100,22 @@ class UserValidator
         }
 
         try {
-            if (property_exists($userData, 'email') && $this->emailExists($userData->email)) {
-                $this->res->code = 422;
-                $this->res->message = "El email ya se encuentra registrado";
-                $this->res->areDataValid = false;
-
-                return $this->res;
+            if ($user_db != null && property_exists($userData, 'email')) {
+                if ($user_db["email"] != $userData->email && $this->emailExists($userData->email)) {
+                    $this->res->code = 422;
+                    $this->res->message = "El email ya se encuentra registrado";
+                    $this->res->areDataValid = false;
+    
+                    return $this->res;
+                }
+            } else {
+                if (property_exists($userData, 'email') && $this->emailExists($userData->email)) {
+                    $this->res->code = 422;
+                    $this->res->message = "El email ya se encuentra registrado";
+                    $this->res->areDataValid = false;
+    
+                    return $this->res;
+                }   
             }
         } catch (\Throwable $th) {
             $this->res->code = 500;

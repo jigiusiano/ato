@@ -37,6 +37,25 @@ class AuthService extends ResourceController
 
         if (isset($this->res->cookie)) {
             $cookie = $this->res->cookie;
+            unset($this->res->cookie);
+            
+            return $this->response
+                ->setJSON($this->res)
+                ->setStatusCode($this->res->code)
+                ->setcookie($cookie);
+        } else {
+            return $this->response
+                ->setJSON($this->res)
+                ->setStatusCode($this->res->code);
+        }
+    }
+
+    public function logout()
+    {
+        $this->res = $this->authController->logout();
+
+        if (isset($this->res->cookie)) {
+            $cookie = $this->res->cookie;
             $this->res->cookie = null;
 
             return $this->response

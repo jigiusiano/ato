@@ -1,3 +1,5 @@
+const URL_BASE = window.location.origin + '/ato';
+
 // Simulación de datos (reemplazar con llamadas a la API real)
 const mockTasks = [
     { ID_task: 1, subject: "Preparar presentación", description: "Crear slides para reunión", priority: 3, stat: 1, expiration_date: "2025-04-25", reminder_date: null, color: "#ff0000", owner: 1, archived: 0 },
@@ -24,73 +26,90 @@ const mockUser = { ID_user: 1, name: "Juan Pérez", email: "juan@example.com" };
 function login(event) {
     event.preventDefault();
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const pass = document.getElementById('password').value;
 
     // Validar email
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
         alert('Por favor, ingrese un correo electrónico válido.');
         return;
     }
 
     // Enviar solicitud al backend
-    fetch('/api/login', {
+    fetch(`${URL_BASE}/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, pass })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.token) {
-            localStorage.setItem('token', data.token);
-            window.location.href = 'index.html';
-        } else {
-            alert('Credenciales incorrectas.');
-        }
-    })
-    .catch(error => alert('Error al iniciar sesión: ' + error));
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 200) {
+                console.log(response.data);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                localStorage.setItem('isLoggedIn', 'true');
+                window.location.href = `${URL_BASE}/workspace`;
+            } else {
+                showToast('El correo o la contraseña son incorrectas', 4000, 'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function register(event) {
     event.preventDefault();
     const name = document.getElementById('name').value;
+    const surname = document.getElementById('surname').value;
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const pass = document.getElementById('password').value;
 
     // Validaciones
     if (name.trim() === '') {
         alert('El nombre no puede estar vacío.');
         return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (surname.trim() === '') {
+        alert('El apellido no puede estar vacío.');
+        return;
+    }
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
         alert('Por favor, ingrese un correo electrónico válido.');
         return;
     }
-    if (password.length < 6) {
+    if (pass.length < 6) {
         alert('La contraseña debe tener al menos 6 caracteres.');
         return;
     }
 
     // Enviar solicitud al backend
-    fetch('/api/register', {
+    fetch(`${URL_BASE}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, surname, email, pass })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Registro exitoso. Por favor, inicia sesión.');
-            window.location.href = 'login.html';
-        } else {
-            alert('Error al registrarse: ' + data.message);
-        }
-    })
-    .catch(error => alert('Error al registrarse: ' + error));
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 201) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                localStorage.setItem('isLoggedIn', 'true');
+                window.location.href = `${URL_BASE}/workspace`;
+            } else {
+                showToast(response?.message, 4000, 'warning')
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function logout() {
-    localStorage.removeItem('token');
-    window.location.href = 'login.html';
+    // Enviar solicitud al backend
+    fetch(`${URL_BASE}/deauth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .then(response => response.json())
+        .then(response => {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = `${URL_BASE}/`;
+        })
+        .catch(error => alert('Error al cerrar sesión: ' + error));
 }
 
 // Funciones para Home
@@ -214,17 +233,17 @@ function createSubtask(event) {
         },
         body: JSON.stringify(subtask)
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Subtarea creada exitosamente.');
-            bootstrap.Modal.getInstance(document.getElementById('createSubtaskModal')).hide();
-            toggleSubtasks(subtask.task);
-        } else {
-            alert('Error al crear la subtarea.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Subtarea creada exitosamente.');
+                bootstrap.Modal.getInstance(document.getElementById('createSubtaskModal')).hide();
+                toggleSubtasks(subtask.task);
+            } else {
+                alert('Error al crear la subtarea.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function prepareInviteForm(taskId) {
@@ -257,16 +276,16 @@ function inviteCollaborator(event) {
         },
         body: JSON.stringify({ email, task: taskId })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Invitación enviada exitosamente.');
-            bootstrap.Modal.getInstance(document.getElementById('inviteCollaboratorModal')).hide();
-        } else {
-            alert('Error al enviar la invitación.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Invitación enviada exitosamente.');
+                bootstrap.Modal.getInstance(document.getElementById('inviteCollaboratorModal')).hide();
+            } else {
+                alert('Error al enviar la invitación.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function createTask(event) {
@@ -302,17 +321,17 @@ function createTask(event) {
         },
         body: JSON.stringify(task)
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Tarea creada exitosamente.');
-            bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
-            loadTasks();
-        } else {
-            alert('Error al crear la tarea.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Tarea creada exitosamente.');
+                bootstrap.Modal.getInstance(document.getElementById('createTaskModal')).hide();
+                loadTasks();
+            } else {
+                alert('Error al crear la tarea.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function editTask(taskId) {
@@ -330,16 +349,16 @@ function deleteTask(taskId) {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Tarea eliminada exitosamente.');
-            loadTasks();
-        } else {
-            alert('Error al eliminar la tarea. Solo el dueño puede eliminarla.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Tarea eliminada exitosamente.');
+                loadTasks();
+            } else {
+                alert('Error al eliminar la tarea. Solo el dueño puede eliminarla.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function archiveTask(taskId) {
@@ -350,16 +369,16 @@ function archiveTask(taskId) {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Tarea archivada exitosamente.');
-            loadTasks();
-        } else {
-            alert('Error al archivar la tarea.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Tarea archivada exitosamente.');
+                loadTasks();
+            } else {
+                alert('Error al archivar la tarea.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function deleteSubtask(subtaskId, taskId) {
@@ -372,16 +391,16 @@ function deleteSubtask(subtaskId, taskId) {
             'Authorization': 'Bearer ' + localStorage.getItem('token')
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Subtarea eliminada exitosamente.');
-            toggleSubtasks(taskId);
-        } else {
-            alert('Error al eliminar la subtarea. Solo el dueño puede eliminarla.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Subtarea eliminada exitosamente.');
+                toggleSubtasks(taskId);
+            } else {
+                alert('Error al eliminar la subtarea. Solo el dueño puede eliminarla.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function updateSubtaskStatus(subtaskId, status) {
@@ -394,17 +413,17 @@ function updateSubtaskStatus(subtaskId, status) {
         },
         body: JSON.stringify({ stat: parseInt(status) })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Estado de la subtarea actualizado.');
-            const taskId = mockSubtasks.find(st => st.ID_subtask === subtaskId).task;
-            toggleSubtasks(taskId);
-        } else {
-            alert('Error al actualizar el estado. Solo el asignado puede modificarlo.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Estado de la subtarea actualizado.');
+                const taskId = mockSubtasks.find(st => st.ID_subtask === subtaskId).task;
+                toggleSubtasks(taskId);
+            } else {
+                alert('Error al actualizar el estado. Solo el asignado puede modificarlo.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function loadInvitations() {
@@ -436,17 +455,17 @@ function acceptInvitation(taskId) {
         },
         body: JSON.stringify({ task: taskId, recipient: mockUser.ID_user })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Invitación aceptada.');
-            loadInvitations();
-            loadTasks();
-        } else {
-            alert('Error al aceptar la invitación.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Invitación aceptada.');
+                loadInvitations();
+                loadTasks();
+            } else {
+                alert('Error al aceptar la invitación.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
 function rejectInvitation(taskId) {
@@ -458,23 +477,34 @@ function rejectInvitation(taskId) {
         },
         body: JSON.stringify({ task: taskId, recipient: mockUser.ID_user })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Invitación rechazada.');
-            loadInvitations();
-        } else {
-            alert('Error al rechazar la invitación.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Invitación rechazada.');
+                loadInvitations();
+            } else {
+                alert('Error al rechazar la invitación.');
+            }
+        })
+        .catch(error => alert('Error: ' + error));
 }
 
-// Funciones para Perfil
 function loadProfile() {
-    // Cargar datos del usuario (simulado)
-    document.getElementById('name').value = mockUser.name;
-    document.getElementById('email').value = mockUser.email;
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+
+    // Enviar solicitud al backend
+    fetch(`${URL_BASE}/users/${user_id}`, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(response => {
+            user = response?.data[0];
+
+            document.getElementById('name').value = user.name;
+            document.getElementById('surname').value = user.surname;
+            document.getElementById('email').value = user.email;
+        })
+        .catch(error => alert('Error al iniciar sesión: ' + error));
 
     // Cargar resumen de tareas (simulado)
     const summary = document.getElementById('tasksSummary');
@@ -486,7 +516,9 @@ function loadProfile() {
 
 function updateProfile(event) {
     event.preventDefault();
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
     const name = document.getElementById('name').value;
+    const surname = document.getElementById('surname').value;
     const email = document.getElementById('email').value;
 
     // Validaciones
@@ -500,79 +532,147 @@ function updateProfile(event) {
     }
 
     // Enviar al backend
-    fetch('/api/profile', {
+    fetch(`${URL_BASE}/users/${user_id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
-        body: JSON.stringify({ name, email })
+        body: JSON.stringify({ name, surname, email })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Perfil actualizado exitosamente.');
-        } else {
-            alert('Error al actualizar el perfil.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 200) {
+                showToast(response?.message, 5000, 'success');   
+            } else {
+                showToast(response?.message, 5000,'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function changePassword(event) {
     event.preventDefault();
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+    const pass = document.getElementById('pass').value;
 
     // Validaciones
-    if (newPassword.length < 6) {
+    if (pass.length < 6) {
         alert('La nueva contraseña debe tener al menos 6 caracteres.');
         return;
     }
 
     // Enviar al backend
-    fetch('/api/password', {
+    fetch(`${URL_BASE}/users/${user_id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
-        body: JSON.stringify({ currentPassword, newPassword })
+        body: JSON.stringify({ pass })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Contraseña cambiada exitosamente.');
-        } else {
-            alert('Error al cambiar la contraseña.');
-        }
-    })
-    .catch(error => alert('Error: ' + error));
+        .then(response => response.json())
+        .then(response => {
+            if (response.code == 200) {
+                showToast(response?.message, 5000,'success');
+            } else {
+                showToast(response?.message, 5000,'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname.includes('login.html')) {
-        document.getElementById('loginForm').addEventListener('submit', login);
-    } else if (window.location.pathname.includes('register.html')) {
-        document.getElementById('registerForm').addEventListener('submit', register);
-    } else if (window.location.pathname.includes('index.html')) {
-        if (!localStorage.getItem('token')) {
-            window.location.href = 'login.html';
-        } else {
+    const pathname = window.location.pathname;
+    const normalizedPath = pathname.replace(/^\/ato\//, '/');
+
+    switch (normalizedPath) {
+        case '/':
+            document.getElementById('loginForm').addEventListener('submit', login);
+            break;
+        case '/register':
+            document.getElementById('registerForm').addEventListener('submit', register);
+            break;
+        case '/workspace':
             loadTasks();
             loadInvitations();
             document.getElementById('createTaskForm').addEventListener('submit', createTask);
             document.getElementById('createSubtaskForm').addEventListener('submit', createSubtask);
             document.getElementById('inviteCollaboratorForm').addEventListener('submit', inviteCollaborator);
-        }
-    } else if (window.location.pathname.includes('profile.html')) {
-        if (!localStorage.getItem('token')) {
-            window.location.href = 'login.html';
-        } else {
+            break;
+        case '/profile':
             loadProfile();
             document.getElementById('profileForm').addEventListener('submit', updateProfile);
             document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
-        }
+            break;
+        default:
+            break;
+    }
+
+    const value = localStorage.getItem('isLoggedIn');
+
+    if (value !== 'true' && normalizedPath !== '/' && normalizedPath !== '/register') {
+        window.location.href = `${URL_BASE}/`;
     }
 });
+
+class Toast {
+    constructor(message, duration = 4000, type = 'success', options = {}) {
+        this.message = message;
+        this.duration = duration;
+        this.type = type;
+        this.options = options;
+        this.element = null;
+    }
+
+    create() {
+        this.element = document.createElement('div');
+        this.element.className = `custom-toast ${this.type}`;
+        this.element.setAttribute('role', 'alert');
+        this.element.setAttribute('aria-live', 'polite');
+
+        // Type-specific icons
+        const icons = {
+            success: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`,
+            error: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`,
+            warning: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            custom: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+        };
+
+        // Apply custom icon background color if provided
+        if (this.type === 'custom' && this.options && this.options.iconColor) {
+            this.element.style.setProperty('--custom-icon-bg', this.options.iconColor);
+            this.element.querySelector('.custom-toast-icon')?.style.setProperty('background-color', this.options.iconColor);
+        }
+
+        this.element.innerHTML = `
+        ${icons[this.type] || icons.success}
+        <span class="custom-toast-message">${this.message}</span>
+        <button class="custom-toast-close" aria-label="Close notification">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      `;
+
+        document.body.appendChild(this.element);
+
+        // Close button event
+        this.element.querySelector('.custom-toast-close').addEventListener('click', () => this.hide());
+
+        // Auto-hide after duration
+        setTimeout(() => this.hide(), this.duration);
+    }
+
+    hide() {
+        this.element.classList.add('hidden');
+        setTimeout(() => {
+            if (this.element) {
+                this.element.remove();
+            }
+        }, 300); // Wait for animation
+    }
+}
+
+function showToast(message, duration, type, options) {
+    const toast = new Toast(message, duration, type, options);
+    toast.create();
+}

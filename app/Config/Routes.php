@@ -5,11 +5,16 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+$routes->get('/', 'ViewController::login');
+$routes->get('/login', 'ViewController::login');
+$routes->get('/register', 'ViewController::register');
+$routes->get('/workspace', 'ViewController::workspace');
+$routes->get('/profile', 'ViewController::profile');
 
-$routes->post('/auth', 'Services\AuthService::login');              // Obtener todos los usuarios (GET /users)
+$routes->post('/auth', 'Services\AuthService::login');
+$routes->post('/deauth', 'Services\AuthService::logout');     
 $routes->get('/users/(:num)', 'Services\UserService::show/$1', ['filter' => 'auth']);     // Obtener un usuario por ID (GET /users/5)
-$routes->post('/users', 'Services\UserService::create', ['filter' => 'auth']);            // Crear un nuevo usuario (POST /users)
+$routes->post('/users', 'Services\UserService::create');            // Crear un nuevo usuario (POST /users)
 $routes->put('/users/(:num)', 'Services\UserService::update/$1', ['filter' => 'auth']);   // Actualizar un usuario por ID (PUT /users/5)
 $routes->delete('users/(:num)', 'Services\UserService::delete/$1', ['filter' => 'auth']); // Eliminar un usuario por ID (DELETE /users/5)
 

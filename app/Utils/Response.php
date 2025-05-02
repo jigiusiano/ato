@@ -6,7 +6,7 @@ class Response
 {
     public int $code;
     public string $message;
-    public mixed $data;
+    public mixed $data = [];
     public string $areDataValid;
     public ?array $cookie;
 
