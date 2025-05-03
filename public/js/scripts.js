@@ -101,6 +101,7 @@ function logout() {
         .then(response => response.json())
         .then(response => {
             localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
             window.location.href = `${URL_BASE}/`;
         })
         .catch(error => alert('Error al cerrar sesión: ' + error));
@@ -690,3 +691,22 @@ function showToast(message, duration, type, options) {
     const toast = new Toast(message, duration, type, options);
     toast.create();
 }
+
+async function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+const originalFetch = window.fetch;
+
+window.fetch = async (...args) => {
+  const response = await originalFetch(...args);
+
+  if (response.status === 401) {
+    showToast('Sesión caducada', 4000, 'warning');
+    await sleep(4000);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user');
+    window.location.href = `${URL_BASE}/`;
+  }
+
+  return response;
+};
