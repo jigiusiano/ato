@@ -85,7 +85,7 @@ class TaskService extends ResourceController
 
     public function update($id = null)
     {
-        if (!$this->req->isRequestValid("update", $this->request, ['subject', 'description', 'priority', 'stat', 'expiration_date', 'reminder_date', 'color', 'archived'], $id)) {
+        if (!$this->req->isRequestValid("update", $this->request, ['subject', 'description', 'priority', 'expiration_date', 'color'], $id)) {
             $this->res->code = 400;
             $this->res->message = "Formato invalido";
 

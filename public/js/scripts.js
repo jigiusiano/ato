@@ -349,9 +349,96 @@ function createTask(event) {
         .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
+function prepareEditTaskForm(taskId) {
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+    fetch(`${URL_BASE}/tasks/${taskId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 200) {
+                const task = response.data[0];
+
+                if (task.owner !== user_id) {
+                    showToast(response.message, 4000, 'error');
+                    return;
+                }
+
+                if (!Boolean(task.archived)) {
+                    showToast(response.message, 4000, 'error');
+                    return;
+                }
+
+                document.getElementById('editTaskId').value = task.ID_task;
+                document.getElementById('editTaskSubject').value = task.subject;
+                document.getElementById('editTaskDescription').value = task.description;
+                document.getElementById('editTaskPriority').value = task.priority;
+                document.getElementById('editTaskExpirationDate').value = task.expiration_date.replace(' ', 'T');
+                document.getElementById('editTaskReminderDate').value = task.reminder_date ? task.reminder_date.replace(' ', 'T') : '';
+                document.getElementById('editTaskColor').value = task.color;
+
+                const modal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+                modal.show();
+            } else {
+                showToast(response.message, 4000, 'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
+}
+
 function editTask(taskId) {
-    // Implementar lógica para editar tarea (modal similar a createTaskModal)
-    alert('Funcionalidad de edición no implementada en este ejemplo.');
+    prepareEditTaskForm(taskId);
+}
+
+function updateTask(event) {
+    event.preventDefault();
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+    const taskId = parseInt(document.getElementById('editTaskId').value);
+    const task = {
+        subject: document.getElementById('editTaskSubject').value,
+        description: document.getElementById('editTaskDescription').value,
+        priority: parseInt(document.getElementById('editTaskPriority').value),
+        expiration_date: document.getElementById('editTaskExpirationDate').value,
+        color: document.getElementById('editTaskColor').value,
+    };
+
+    const reminder_date = document.getElementById('editTaskReminderDate').value || null;
+    if (reminder_date) {
+        task.reminder_date = reminder_date;
+    }
+
+    // Validaciones
+    if (!task.subject.trim() || !task.description.trim()) {
+        showToast('Asunto y descripción son obligatorios', 4000, 'warning');
+        return;
+    }
+    if (!task.expiration_date) {
+        showToast('La fecha de vencimiento es obligatoria', 4000, 'warning');
+        return;
+    }
+
+    // Enviar al backend
+    fetch(`${URL_BASE}/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(task)
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 200) {
+                showToast(response.message, 4000, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+                loadTasks();
+            } else {
+                showToast(response.message, 4000, 'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function deleteTask(taskId) {
@@ -616,6 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('createTaskForm').addEventListener('submit', createTask);
             document.getElementById('createSubtaskForm').addEventListener('submit', createSubtask);
             document.getElementById('inviteCollaboratorForm').addEventListener('submit', inviteCollaborator);
+            document.getElementById('editTaskForm').addEventListener('submit', updateTask);
             break;
         case '/profile':
             loadProfile();

@@ -10,26 +10,6 @@
 </head>
 
 <body>
-    <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteTaskModalLabel">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Estás seguro de que quieres eliminar esta tarea?</p>
-                    <input type="hidden" id="deleteTaskId">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="confirmDeleteTask()">Eliminar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="workspace">Administrador de Tareas</a>
@@ -52,21 +32,17 @@
         </div>
     </nav>
 
-    <!-- Contenido principal -->
     <div class="container mt-4">
-        <!-- Botón para crear tarea -->
         <div class="d-flex justify-content-between mb-3">
             <h2>Mis Tareas</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">Crear Tarea</button>
         </div>
 
-        <!-- Invitaciones pendientes -->
         <div class="mb-4">
             <h4>Invitaciones Pendientes</h4>
             <div id="invitationsList" class="list-group"></div>
         </div>
 
-        <!-- Filtros -->
         <div class="mb-3">
             <label for="sortTasks" class="form-label">Ordenar por:</label>
             <select id="sortTasks" class="form-select w-auto d-inline-block" onchange="loadTasks()">
@@ -77,11 +53,9 @@
             </select>
         </div>
 
-        <!-- Lista de tareas -->
         <div id="tasksList" class="row"></div>
     </div>
 
-    <!-- Modal para crear tarea -->
     <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -126,7 +100,6 @@
         </div>
     </div>
 
-    <!-- Modal para crear subtarea -->
     <div class="modal fade" id="createSubtaskModal" tabindex="-1" aria-labelledby="createSubtaskModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -156,9 +129,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="subtaskAssignee" class="form-label">Asignar a</label>
-                            <select class="form-select" id="subtaskAssignee" required>
-                                <!-- Llenado dinámicamente -->
-                            </select>
+                            <select class="form-select" id="subtaskAssignee" required></select>
                         </div>
                         <div class="mb-3">
                             <label for="subtaskComment" class="form-label">Comentario (Opcional)</label>
@@ -171,7 +142,6 @@
         </div>
     </div>
 
-    <!-- Modal para invitar colaborador -->
     <div class="modal fade" id="inviteCollaboratorModal" tabindex="-1" aria-labelledby="inviteCollaboratorModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -187,6 +157,70 @@
                             <input type="email" class="form-control" id="inviteEmail" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Enviar Invitación</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTaskModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que quieres eliminar esta tarea?</p>
+                    <input type="hidden" id="deleteTaskId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteTask()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTaskModalLabel">Editar Tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTaskForm">
+                        <input type="hidden" id="editTaskId">
+                        <div class="mb-3">
+                            <label for="editTaskSubject" class="form-label">Asunto</label>
+                            <input type="text" class="form-control" id="editTaskSubject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaskDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="editTaskDescription" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaskPriority" class="form-label">Prioridad</label>
+                            <select class="form-select" id="editTaskPriority" required>
+                                <option value="1">Baja</option>
+                                <option value="2">Normal</option>
+                                <option value="3">Alta</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaskExpirationDate" class="form-label">Fecha de Vencimiento</label>
+                            <input type="datetime-local" class="form-control" id="editTaskExpirationDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaskReminderDate" class="form-label">Fecha de Recordatorio (Opcional)</label>
+                            <input type="datetime-local" class="form-control" id="editTaskReminderDate">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaskColor" class="form-label">Color</label>
+                            <input type="color" class="form-control form-control-color" id="editTaskColor" value="#007bff">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                     </form>
                 </div>
             </div>
