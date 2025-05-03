@@ -355,25 +355,29 @@ function editTask(taskId) {
 }
 
 function deleteTask(taskId) {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) return;
+    document.getElementById('deleteTaskId').value = taskId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
+    modal.show();
+}
 
-    // Enviar al backend
-    fetch(`/api/tasks/${taskId}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
+function confirmDeleteTask() {
+    const taskId = document.getElementById('deleteTaskId').value;
+
+    fetch(`${URL_BASE}/tasks/${taskId}`, {
+        method: 'DELETE'
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('Tarea eliminada exitosamente.');
+            if (data.code == 200) {
+                showToast(data.message, 4000, 'success');
                 loadTasks();
             } else {
-                alert('Error al eliminar la tarea. Solo el dueño puede eliminarla.');
+                showToast(data.message, 4000, 'error');
             }
         })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
+
+    bootstrap.Modal.getInstance(document.getElementById('deleteTaskModal')).hide();
 }
 
 function archiveTask(taskId) {
@@ -698,15 +702,15 @@ async function sleep(ms) {
 const originalFetch = window.fetch;
 
 window.fetch = async (...args) => {
-  const response = await originalFetch(...args);
+    const response = await originalFetch(...args);
 
-  if (response.status === 401) {
-    showToast('Sesión caducada', 4000, 'warning');
-    await sleep(4000);
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('user');
-    window.location.href = `${URL_BASE}/`;
-  }
+    if (response.status === 401) {
+        showToast('Sesión caducada', 4000, 'warning');
+        await sleep(4000);
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('user');
+        window.location.href = `${URL_BASE}/`;
+    }
 
-  return response;
+    return response;
 };
