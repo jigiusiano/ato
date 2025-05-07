@@ -44,6 +44,7 @@
         public function update($id = null)
         {
             $stat = $this->request->getGet('stat');
+            $recipientId = $this->request->getGet('recipient');
 
             if (!$this->req->isRequestValid("update", $this->request, [], $id)) {
                 $this->res->code = 400;
@@ -54,7 +55,7 @@
                     ->setStatusCode($this->res->code);
             }
 
-            $this->res = $this->invitationController->update($id, $stat);
+            $this->res = $this->invitationController->update($id, $stat, $recipientId);
     
             return $this->response
                 ->setJSON($this->res, true)

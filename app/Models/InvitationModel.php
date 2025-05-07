@@ -35,7 +35,7 @@ class InvitationModel
         return $query->getResultArray();
     }
 
-    public function processInvitation(string $id, string $status)
+    public function acceptInvitation(string $id, string $status)
     {
         $this->db->transStart();
 
@@ -60,5 +60,13 @@ class InvitationModel
         if ($this->db->transStatus() === false) {
             throw new \Exception("Error al actualizar la invitación y agregar el colaborador.");
         }
+    }
+
+    public function rejectInvitation(string $id, string $status)
+    {
+        $this->db->query(
+            "UPDATE invitations SET stat =? WHERE ID_invitation =?",
+            [$status, $id]
+        );
     }
 }

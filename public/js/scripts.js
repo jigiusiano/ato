@@ -287,37 +287,33 @@ function inviteCollaborator(event) {
     const email = document.getElementById('inviteEmail').value;
     const taskId = parseInt(document.getElementById('inviteTaskId').value);
 
-    // Validar email
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         alert('Por favor, ingrese un correo electrónico válido.');
         return;
     }
 
-    // Verificar si el usuario ya fue invitado (simulado)
     if (mockInvitations.some(inv => inv.task === taskId && mockUsers.find(u => u.email === email && u.ID_user === inv.recipient))) {
         alert('Este usuario ya fue invitado a la tarea.');
         return;
     }
 
-    // Enviar al backend
-    fetch('/api/invitations', {
+    fetch(`${URL_BASE}/invitations`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
-        body: JSON.stringify({ email, task: taskId })
+        body: JSON.stringify({ recipient: email, task: taskId })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('Invitación enviada exitosamente.');
+            if (data.code == 201) {
+                showToast(data.message, 4000, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('inviteCollaboratorModal')).hide();
             } else {
-                alert('Error al enviar la invitación.');
+                showToast(data.message, 4000, 'error');
             }
         })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => showToast('Ups!. Ocurrió un error al crear la invitación', 4000, 'error'));
 }
 
 function createTask(event) {

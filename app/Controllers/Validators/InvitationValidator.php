@@ -121,31 +121,12 @@ class InvitationValidator
             return $this->res;
         }
 
-        if (property_exists($invitationData, 'recipient') && property_exists($invitationData, 'task')) {
-            try {
-                if ($this->invitationExists($invitationData->recipient, $invitationData->task)) {
-                    $this->res->code = 422;
-                    $this->res->message = "La invitación ya fue enviada";
-                    $this->res->areDataValid = false;
-    
-                    return $this->res;
-                }
-            } catch (\Throwable $th) {
-                echo $th;
-                $this->res->code = 500;
-                $this->res->message = "Ocurrio un error al verificar la invitación";
+        if (is_string($invitationData) && !$this->invitationStatusExists($invitationData)) {
+            $this->res->code = 422;
+                $this->res->message = "El estado de la invitación es inválido";
                 $this->res->areDataValid = false;
-    
+
                 return $this->res;
-            }
-        } else {
-            if (is_string($invitationData) && !$this->invitationStatusExists($invitationData)) {
-                $this->res->code = 422;
-                    $this->res->message = "El estado de la invitación es inválido";
-                    $this->res->areDataValid = false;
-    
-                    return $this->res;
-            }
         }
 
         $this->res->areDataValid = boolval(true);
