@@ -41,7 +41,11 @@ class SubtaskService extends ResourceController
                 ->setStatusCode($this->res->code);
         }
 
-        return $this->respond($this->subtaskController->index());
+        $this->res = $this->subtaskController->index();
+
+        return $this->response
+            ->setJSON($this->res)
+            ->setStatusCode($this->res->code);
     }
 
     public function show($id = null)

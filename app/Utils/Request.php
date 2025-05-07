@@ -25,6 +25,7 @@ class Request
                     }
                 }
                 break;
+            case 'index':
             case 'show':
                 // Verifico que el id sea un numero y entero
                 if (!(is_numeric($id) && is_int($id))) {

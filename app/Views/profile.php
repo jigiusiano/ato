@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="public/css/styles.css">
 </head>
 <body>
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="workspace">Administrador de Tareas</a>
@@ -31,11 +30,9 @@
         </div>
     </nav>
 
-    <!-- Contenido principal -->
     <div class="container mt-4">
         <h2>Perfil de Usuario</h2>
         <div class="row">
-            <!-- Editar información -->
             <div class="col-md-6">
                 <div class="card shadow mb-4">
                     <div class="card-body">
@@ -58,7 +55,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Cambiar contraseña -->
             <div class="col-md-6">
                 <div class="card shadow mb-4">
                     <div class="card-body">
@@ -74,7 +70,6 @@
                 </div>
             </div>
         </div>
-        <!-- Resumen de tareas -->
         <div class="card shadow">
             <div class="card-body">
                 <h5 class="card-title">Resumen de Tareas</h5>

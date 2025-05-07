@@ -41,7 +41,11 @@ class TaskService extends ResourceController
                 ->setStatusCode($this->res->code);
         }
 
-        return $this->respond($this->taskController->index());
+        $this->res = $this->taskController->index();
+
+        return $this->response
+                ->setJSON($this->res)
+                ->setStatusCode($this->res->code);
     }
 
     public function show($id = null)

@@ -22,12 +22,7 @@ class UserService extends ResourceController
         $this->req = new Request();
         $this->res = new Response();
     }
-
-    // public function index()
-    // {
-    //     return $this->respond($this->userController->getAll());
-    // }
-
+    
     public function show($id = null)
     {
         if (!$this->req->isRequestValid("show", $this->request, null, $id)) {

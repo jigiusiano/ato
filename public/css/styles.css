@@ -36,7 +36,6 @@ body {
     margin-right: 0.25rem;
 }
 
-/* Custom toast container */
 .custom-toast {
   position: fixed;
   bottom: 1rem;
@@ -53,13 +52,12 @@ body {
   transition: opacity 0.3s ease, transform 0.3s ease;
   opacity: 1 !important;
   transform: translateY(0) !important;
-  z-index: 9999; /* Ensure toast is above everything */
-  background: #ffffff !important; /* White background */
+  z-index: 9999;
+  background: #ffffff !important;
   overflow: visible;
   visibility: visible !important;
 }
 
-/* Hidden state */
 .custom-toast.hidden {
   opacity: 0 !important;
   transform: translateY(0.5rem) !important;
@@ -67,13 +65,12 @@ body {
   visibility: hidden !important;
 }
 
-/* Icon */
 .custom-toast-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: #ffffff !important; /* White icon */
-  background-color: #6b7280; /* Default for custom */
-  border-radius: 50%; /* Circular shape */
+  color: #ffffff !important;
+  background-color: #6b7280;
+  border-radius: 50%;
   padding: 0.25rem;
   flex-shrink: 0;
   display: flex;
@@ -82,28 +79,26 @@ body {
 }
 
 .custom-toast.success .custom-toast-icon {
-  background-color: #22c55e !important; /* Green for success */
+  background-color: #22c55e !important;
 }
 
 .custom-toast.error .custom-toast-icon {
-  background-color: #ef4444 !important; /* Red for error */
+  background-color: #ef4444 !important;
 }
 
 .custom-toast.warning .custom-toast-icon {
-  background-color: #f59e0b !important; /* Yellow for warning */
+  background-color: #f59e0b !important;
 }
 
 .custom-toast.custom .custom-toast-icon {
-  background-color: #6b7280 !important; /* Gray for custom, overridden by JS if custom color */
+  background-color: #6b7280 !important;
 }
 
-/* Message */
 .custom-toast-message {
   font-size: 0.875rem;
-  color: #000000 !important; /* Black text */
+  color: #000000 !important;
 }
 
-/* Close button */
 .custom-toast-close {
   background: none;
   border: none;

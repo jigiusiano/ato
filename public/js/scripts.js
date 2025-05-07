@@ -210,8 +210,28 @@ function toggleSubtasks(taskId) {
 
 function prepareSubtaskForm(taskId) {
     document.getElementById('subtaskTaskId').value = taskId;
-    const assigneeSelect = document.getElementById('subtaskAssignee');
-    assigneeSelect.innerHTML = mockUsers.map(user => `<option value="${user.ID_user}">${user.name}</option>`).join('');
+
+    fetch(`${URL_BASE}/collaborators?ID_task=${taskId}`, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code == 200) {
+                const assigneeSelect = document.getElementById('subtaskAssignee');
+                assigneeSelect.innerHTML = '';
+
+                let collaborators = response?.data?.filter(user => Object.keys(user).includes("ID_user"));
+
+                if (collaborators.length === 0) {
+                    assigneeSelect.innerHTML = '<option value="">No hay usuarios disponibles</option>';
+                } else {
+                    assigneeSelect.innerHTML = collaborators.map(user => `<option value="${user.ID_user}">${user?.name} ${user?.surname}</option>`).join('');
+                }
+            } else {
+                showToast(response?.message, 4000, 'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error al cargar las tareas', 4000, 'error'));
 }
 
 function createSubtask(event) {

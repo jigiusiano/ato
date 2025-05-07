@@ -31,4 +31,6 @@ $routes->put('/subtasks/(:num)', 'Services\SubtaskService::update/$1', ['filter'
 $routes->delete('subtasks/(:num)', 'Services\SubtaskService::delete/$1', ['filter' => 'auth']); // Eliminar una subtarea por ID (DELETE /subtasks/5)
 
 $routes->post('/invitations', 'Services\InvitationService::create', ['filter' => 'auth']);              // Crear una nueva invitacion (POST /invitations)
-$routes->put('/invitations/(:num)', 'Services\InvitationService::update/$1', ['filter' => 'auth']);                           // Actualizar una invitacion por ID (PUT /invitation/5)
+$routes->put('/invitations/(:num)', 'Services\InvitationService::update/$1', ['filter' => 'auth']);  
+
+$routes->get('/collaborators', 'Services\CollaboratorService::index', ['filter' => 'auth']);              // Obtener todos los colaboradores (GET /collaborators)

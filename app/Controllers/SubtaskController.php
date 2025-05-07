@@ -53,7 +53,8 @@ class SubtaskController
             $tasks = $this->subtaskModel->getAll();
 
             if (count($tasks) == 0) {
-                $this->res->code = 404;
+                $this->res->code = 200;
+                $this->res->data = [];
                 $this->res->message = "No hay subtareas registradas";
 
                 return $this->res;
