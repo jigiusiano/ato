@@ -40,13 +40,27 @@ class SubtaskValidator
 
     private function isDateFormatValid(string $date): bool
     {
-        $dateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $date);
-        return $dateTime && $dateTime->format('Y-m-d H:i:s') === $date;
+        $date = explode('T', $date);
+        if (count($date) != 2) {
+            return false;   
+        }
+
+        $date = $date[0] . ' ' . $date[1];
+
+        $dateTime = \DateTime::createFromFormat('Y-m-d H:i', $date);
+        return $dateTime && $dateTime->format('Y-m-d H:i') === $date;
     }
 
     private function isExpirationDateValid(string $subtaskExpirationDate, string $taskExpirationDate): bool
     {
-        $subtaskDateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $subtaskExpirationDate);
+        $subtaskDate = explode('T', $subtaskExpirationDate);
+        if (count($subtaskDate) != 2) {
+            return false;   
+        }
+
+        $subtaskDate = $subtaskDate[0] . ' ' . $subtaskDate[1];
+
+        $subtaskDateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $subtaskDate);
         $taskDateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $taskExpirationDate);
 
         return $subtaskDateTime <= $taskDateTime;

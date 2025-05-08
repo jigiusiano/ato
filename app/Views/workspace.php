@@ -125,7 +125,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="subtaskExpirationDate" class="form-label">Fecha de Vencimiento (Opcional)</label>
-                            <input type="date" class="form-control" id="subtaskExpirationDate">
+                            <input type="datetime-local" class="form-control" id="subtaskExpirationDate">
                         </div>
                         <div class="mb-3">
                             <label for="subtaskAssignee" class="form-label">Asignar a</label>

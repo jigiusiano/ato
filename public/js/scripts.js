@@ -169,18 +169,27 @@ async function loadTasks() {
     }
 }
 
-function toggleSubtasks(taskId) {
+async function toggleSubtasks(taskId) {
     const subtasksDiv = document.getElementById(`subtasks-${taskId}`);
     const isShown = subtasksDiv.classList.contains('show');
 
+    const subtasks = await fetch(`${URL_BASE}/subtasks?task=${taskId}`, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code == 200) {
+                return response.data;
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error al cargar las tareas', 4000, 'error'));
+
     if (!isShown) {
-        // Cargar subtareas (simulado)
-        const subtasks = mockSubtasks.filter(st => st.task === taskId);
         subtasksDiv.innerHTML = '';
 
         subtasks.forEach(subtask => {
-            const isAssignee = subtask.assignee === mockUser.ID_user;
-            const isOwner = mockTasks.find(t => t.ID_task === taskId).owner === mockUser.ID_user;
+            const isAssignee = true// subtask.assignee === mockUser.ID_user;
+            const isOwner = true// mockTasks.find(t => t.ID_task === taskId).owner === mockUser.ID_user;
             const subtaskItem = document.createElement('div');
             subtaskItem.className = 'subtask-item';
             subtaskItem.innerHTML = `
@@ -231,7 +240,7 @@ function prepareSubtaskForm(taskId) {
                 showToast(response?.message, 4000, 'error');
             }
         })
-        .catch(error => showToast('Ups!. Ocurrió un error al cargar las tareas', 4000, 'error'));
+        .catch(error => showToast('Ups!. Ocurrió un error al cargar los colaboradores', 4000, 'error'));
 }
 
 function createSubtask(event) {
@@ -239,11 +248,10 @@ function createSubtask(event) {
     const subtask = {
         task: parseInt(document.getElementById('subtaskTaskId').value),
         description: document.getElementById('subtaskDescription').value,
-        priority: document.getElementById('subtaskPriority').value || null,
-        expiration_date: document.getElementById('subtaskExpirationDate').value || null,
-        cmt: document.getElementById('subtaskComment').value || null,
-        assignee: parseInt(document.getElementById('subtaskAssignee').value),
-        stat: 1
+        priority: document.getElementById('subtaskPriority').value || undefined,
+        expiration_date: document.getElementById('subtaskExpirationDate').value || undefined,
+        cmt: document.getElementById('subtaskComment').value || undefined,
+        assignee: parseInt(document.getElementById('subtaskAssignee').value)
     };
 
     // Validaciones
@@ -256,26 +264,24 @@ function createSubtask(event) {
         return;
     }
 
-    // Enviar al backend
-    fetch('/api/subtasks', {
+    fetch(`${URL_BASE}/subtasks`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify(subtask)
     })
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Subtarea creada exitosamente.');
+        .then(response => {
+            if (response.code == 201) {
+                showToast(response?.message, 4000, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('createSubtaskModal')).hide();
                 toggleSubtasks(subtask.task);
             } else {
-                alert('Error al crear la subtarea.');
+                showToast(response?.message, 4000, 'error')
             }
         })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => console.log('EL ERROR: ', error?.message) ?? showToast('Ups!. Ocurrió un error al crear la subtarea', 4000, 'error'));
 }
 
 function prepareInviteForm(taskId) {
@@ -809,7 +815,7 @@ window.fetch = async (...args) => {
     const response = await originalFetch(...args);
 
     if (response.status === 401) {
-        showToast('Sesión caducada', 4000, 'warning');
+        showToast('Sesión caducada', 2000, 'warning');
         await sleep(4000);
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('user');

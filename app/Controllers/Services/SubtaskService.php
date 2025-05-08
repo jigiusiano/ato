@@ -68,7 +68,7 @@ class SubtaskService extends ResourceController
 
     public function create()
     {
-        $requiredProperties = ['description', 'stat', 'task', 'assignee'];
+        $requiredProperties = ['description', 'task', 'assignee'];
         if (!$this->req->isRequestValid("create", $this->request, $requiredProperties)) {
             $this->res->code = 400;
             $this->res->message = "Formato invalido";
