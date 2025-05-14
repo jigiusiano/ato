@@ -19,10 +19,10 @@ class TaskController
         $this->res = new Response();
     }
 
-    public function getAllByIDUser($owner): Response
+    public function getAllByIDUser($owner, $archived): Response
     {
         try {
-            $tasks = $this->taskModel->getAllByIDUser($owner);
+            $tasks = $this->taskModel->getAllByIDUser($owner, $archived);
 
             if (count($tasks) == 0) {
                 $this->res->code = 200;

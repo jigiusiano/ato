@@ -184,7 +184,7 @@ class TaskValidator
             return $this->res;
         }
 
-        if (property_exists($taskData, 'archived') && !$this->isArchivedValid($taskData->arvhived)) {
+        if (property_exists($taskData, 'archived') && !$this->isArchivedValid($taskData->archived)) {
             $this->res->code = 422;
             $this->res->message = "La propiedad archived no es valida";
             $this->res->areDataValid = false;

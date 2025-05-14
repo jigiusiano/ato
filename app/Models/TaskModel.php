@@ -47,10 +47,10 @@ class TaskModel
         return $query->getResultArray();
     }
 
-    public function getAllByIDUser($owner): array
+    public function getAllByIDUser($owner, $archived): array
     {
-        $sql = "SELECT * FROM tasks WHERE owner = ?";
-        $query = $this->db->query($sql, [$owner]);
+        $sql = "SELECT * FROM tasks WHERE owner = ? AND archived = ?";
+        $query = $this->db->query($sql, [$owner, $archived]);
 
         return $query->getResultArray();
     }

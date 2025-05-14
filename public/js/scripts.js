@@ -88,7 +88,7 @@ function logout() {
 async function loadTasks() {
     const user_id = JSON.parse(localStorage.getItem('user')).id;
 
-    const data = await fetch(`${URL_BASE}/tasks?owner=${user_id}`, {
+    const data = await fetch(`${URL_BASE}/tasks?owner=${user_id}&archived=false`, {
         method: 'GET',
     })
         .then(response => response.json())
@@ -99,8 +99,10 @@ async function loadTasks() {
         })
         .catch(error => showToast('Ups!. Ocurrió un error al cargar las tareas', 4000, 'error'));
 
+    const tasksList = document.getElementById('tasksList');
+    tasksList.innerHTML = '';
 
-    if (data.length > 0) {
+    if (data?.length > 0) {
         const sortBy = document.getElementById('sortTasks').value;
 
         const tasks = data.sort((a, b) => {
@@ -110,13 +112,10 @@ async function loadTasks() {
             if (sortBy === 'color') return a.color.localeCompare(b.color);
         });
 
-        const tasksList = document.getElementById('tasksList');
-        tasksList.innerHTML = '';
-
         tasks.forEach(task => {
             const isOwner = task.owner === user_id;
             const card = document.createElement('div');
-            card.className = "col-md-6 task-card";
+            card.className = `col-md-6 task-card ${task.priority == 3 ? 'priority-high' : ''}`;
             card.style.border = "none";
             card.innerHTML = `
             <div class="card shadow">
@@ -135,7 +134,7 @@ async function loadTasks() {
                             <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#inviteCollaboratorModal" onclick="prepareInviteForm(${task.ID_task})">Invitar</button>
                             <button class="btn btn-sm btn-warning" onclick="editTask(${task.ID_task})">Editar</button>
                             <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.ID_task})">Eliminar</button>
-                            ${task.stat === 3 && !task.archived ? `<button class="btn btn-sm btn-secondary" onclick="archiveTask(${task.ID_task})">Archivar</button>` : ''}
+                            ${Number(task.stat) === 3 && !Boolean(Number(task.archived)) ? `<button class="btn btn-sm btn-secondary" onclick="archiveTask(${task.ID_task})">Archivar</button>` : ''}
                         ` : ''}
                     </div>
                 </div>
@@ -144,7 +143,77 @@ async function loadTasks() {
         `;
             tasksList.appendChild(card);
         });
+    } else {
+        tasksList.innerHTML = '<p>No hay tareas activas.</p>';
     }
+}
+
+async function loadArchivedTasks() {
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+
+    const tasks = await fetch(`${URL_BASE}/tasks?owner=${user_id}&archived=true`, {
+        method: 'GET',
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code == 200) {
+                return response.data;
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error al cargar las tareas archivadas', 4000, 'error'));
+
+    const archivedTasksList = document.getElementById('archivedTasksList');
+    archivedTasksList.innerHTML = '';
+
+    if (tasks?.length > 0) {
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = `col-md-6 task-card ${task.priority == 3 ? 'priority-high' : ''}`;
+            card.style.border = "none";
+            card.innerHTML = `
+            <div class="card shadow">
+                <div class="card-body">
+                    <span class="badge" style="position: absolute; right: 20px; border-radius: 100px; width: 20px; height: 20px; background-color: ${task.color};"> </span>
+                    <h5 class="card-title">${task.subject}</h5>
+                    <p class="card-text">${task.description}</p>
+                    <p><strong>Prioridad:</strong> <span style="border-radius: ${task.priority == 3 ? '10px' : ''}; padding: ${task.priority == 3 ? '2px 10px' : ''}; color: ${task.priority == 3 ? '#FFFFFF' : ''}; background-color: ${task.priority == 3 ? '#dc3545' : ''}; font-weight: ${task.priority == 3 ? 'bold' : 'normal'};">${['Baja', 'Normal', 'Alta'][task.priority - 1]}</span></p>
+                    <p><strong>Estado:</strong> <span>${['Definido', 'En proceso', 'Completada'][task.stat - 1]}</span></p>
+                    <p><strong>Vencimiento:</strong> ${task.expiration_date}</p>
+                    ${task.reminder_date ? `<p><strong>Recordatorio:</strong> ${task.reminder_date}</p>` : ''}
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" onclick="toggleSubtasks(${task.ID_task})">Subtareas</button>
+                        <button class="btn btn-sm btn-secondary" onclick="unarchiveTask(${task.ID_task})">Desarchivar</button>
+                    </div>
+                </div>
+                <div id="subtasks-${task.ID_task}" class="subtask-list collapse"></div>
+            </div>
+        `;
+            archivedTasksList.appendChild(card);
+        });
+    } else {
+        archivedTasksList.innerHTML = '<p>No hay tareas archivadas.</p>';
+    }
+}
+
+function unarchiveTask(taskId) {
+    fetch(`${URL_BASE}/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ archived: false })
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 200) {
+                showToast(response.message, 4000, 'success');
+                loadTasks();
+                loadArchivedTasks();
+            } else {
+                showToast(response.message, 4000, 'error');
+            }
+        })
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 async function toggleSubtasks(taskId) {
@@ -329,11 +398,6 @@ function inviteCollaborator(event) {
         return;
     }
 
-    if (mockInvitations.some(inv => inv.task === taskId && mockUsers.find(u => u.email === email && u.ID_user === inv.recipient))) {
-        alert('Este usuario ya fue invitado a la tarea.');
-        return;
-    }
-
     fetch(`${URL_BASE}/invitations`, {
         method: 'POST',
         headers: {
@@ -418,7 +482,7 @@ function prepareEditTaskForm(taskId) {
                     return;
                 }
 
-                if (!Boolean(task.archived)) {
+                if (!Boolean(Number(task.archived))) {
                     showToast(response.message, 4000, 'error');
                     return;
                 }
@@ -517,23 +581,23 @@ function confirmDeleteTask() {
 }
 
 function archiveTask(taskId) {
-    fetch(`/api/tasks/${taskId}/archive`, {
+    fetch(`${URL_BASE}/tasks/${taskId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
+        },
+        body: JSON.stringify({ archived: true })
     })
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Tarea archivada exitosamente.');
+        .then(response => {
+            if (response.code === 200) {
+                showToast(response.message, 4000,'success');
                 loadTasks();
             } else {
-                alert('Error al archivar la tarea.');
+                showToast(response.message, 4000, 'error');
             }
         })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function deleteSubtask(subtaskId) {
@@ -597,12 +661,6 @@ function loadProfile() {
             document.getElementById('email').value = user.email;
         })
         .catch(error => alert('Error al iniciar sesión: ' + error));
-
-    const summary = document.getElementById('tasksSummary');
-    summary.innerHTML = `
-        <p><strong>Tareas Activas:</strong> ${mockTasks.filter(t => !t.archived).length}</p>
-        <p><strong>Tareas Archivadas:</strong> ${mockTasks.filter(t => t.archived).length}</p>
-    `;
 }
 
 function updateProfile(event) {
@@ -667,6 +725,21 @@ function changePassword(event) {
         .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
+function initializeTabs() {
+    const activeTab = document.querySelector('#active-tasks-tab');
+    const archivedTab = document.querySelector('#archived-tasks-tab');
+
+    loadTasks();
+
+    activeTab.addEventListener('shown.bs.tab', () => {
+        loadTasks();
+    });
+
+    archivedTab.addEventListener('shown.bs.tab', () => {
+        loadArchivedTasks();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const pathname = window.location.pathname;
     const normalizedPath = pathname.replace(/^\/ato\//, '/');
@@ -679,7 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('registerForm').addEventListener('submit', register);
             break;
         case '/workspace':
-            loadTasks();
+            initializeTabs();
             document.getElementById('createTaskForm').addEventListener('submit', createTask);
             document.getElementById('createSubtaskForm').addEventListener('submit', createSubtask);
             document.getElementById('inviteCollaboratorForm').addEventListener('submit', inviteCollaborator);

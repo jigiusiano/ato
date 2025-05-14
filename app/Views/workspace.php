@@ -13,7 +13,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="workspace">Administrador de Tareas</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -33,35 +33,47 @@
     </nav>
 
     <div class="container mt-4">
-        <div class="d-flex justify-content-between mb-3">
+        <div>
             <h2>Mis Tareas</h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">Crear Tarea</button>
         </div>
 
-        <div class="mb-4">
-            <h4>Invitaciones Pendientes</h4>
-            <div id="invitationsList" class="list-group"></div>
-        </div>
+        <ul class="nav nav-tabs" id="taskTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="active-tasks-tab" data-bs-toggle="tab" data-bs-target="#active-tasks" type="button" role="tab">Tareas Activas</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="archived-tasks-tab" data-bs-toggle="tab" data-bs-target="#archived-tasks" type="button" role="tab">Tareas Archivadas</button>
+            </li>
+        </ul>
 
-        <div class="mb-3">
-            <label for="sortTasks" class="form-label">Ordenar por:</label>
-            <select id="sortTasks" class="form-select w-auto d-inline-block" onchange="loadTasks()">
-                <option value="expiration_date">Fecha de Vencimiento</option>
-                <option value="priority">Prioridad</option>
-                <option value="subject">Asunto</option>
-                <option value="color">Color</option>
-            </select>
+        <div class="tab-content" id="taskTabsContent">
+            <div class="tab-pane fade show active pt-3" id="active-tasks" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <label for="sortTasks" class="form-label">Ordenar por:</label>
+                        <select id="sortTasks" class="form-select w-auto d-inline-block" onchange="loadTasks()">
+                            <option value="expiration_date">Fecha de Vencimiento</option>
+                            <option value="priority">Prioridad</option>
+                            <option value="subject">Asunto</option>
+                            <option value="color">Color</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">Crear Tarea</button>
+                </div>
+                <div id="tasksList" class="row"></div>
+            </div>
+            <div class="tab-pane fade show active pt-3" id="archived-tasks" role="tabpanel">
+                <div class="row" id="archivedTasksList"></div>
+            </div>
         </div>
-
-        <div id="tasksList" class="row"></div>
     </div>
 
-    <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createTaskModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="createTaskModalLabel">Crear Nueva Tarea</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="createTaskForm">
@@ -100,12 +112,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="createSubtaskModal" tabindex="-1" aria-labelledby="createSubtaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createSubtaskModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="createSubtaskModalLabel">Crear Subtarea</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="createSubtaskForm">
@@ -142,54 +154,54 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editSubtaskModal" tabindex="-1" aria-labelledby="editSubtaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editSubtaskModalLabel">Editar Subtarea</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="editSubtaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSubtaskModalLabel">Editar Subtarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editSubtaskForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="editSubtaskId" name="subtaskId">
+                        <input type="hidden" id="editSubtaskTaskId" name="taskId">
+                        <div class="mb-3">
+                            <label for="editSubtaskDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="editSubtaskDescription" name="description" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSubtaskPriority" class="form-label">Prioridad (Opcional)</label>
+                            <select class="form-select" id="editSubtaskPriority" name="priority">
+                                <option value="">Ninguna</option>
+                                <option value="1">Baja</option>
+                                <option value="2">Normal</option>
+                                <option value="3">Alta</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSubtaskExpirationDate" class="form-label">Fecha de Vencimiento (Opcional)</label>
+                            <input type="datetime-local" class="form-control" id="editSubtaskExpirationDate" name="expiration_date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSubtaskComment" class="form-label">Comentario (Opcional)</label>
+                            <textarea class="form-control" id="editSubtaskComment" name="comment"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
             </div>
-            <form id="editSubtaskForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editSubtaskId" name="subtaskId">
-                    <input type="hidden" id="editSubtaskTaskId" name="taskId">
-                    <div class="mb-3">
-                        <label for="editSubtaskDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="editSubtaskDescription" name="description" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editSubtaskPriority" class="form-label">Prioridad (Opcional)</label>
-                        <select class="form-select" id="editSubtaskPriority" name="priority">
-                            <option value="">Ninguna</option>
-                            <option value="1">Baja</option>
-                            <option value="2">Normal</option>
-                            <option value="3">Alta</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editSubtaskExpirationDate" class="form-label">Fecha de Vencimiento (Opcional)</label>
-                        <input type="datetime-local" class="form-control" id="editSubtaskExpirationDate" name="expiration_date">
-                    </div>
-                    <div class="mb-3">
-                        <label for="editSubtaskComment" class="form-label">Comentario (Opcional)</label>
-                        <textarea class="form-control" id="editSubtaskComment" name="comment"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-    <div class="modal fade" id="inviteCollaboratorModal" tabindex="-1" aria-labelledby="inviteCollaboratorModalLabel" aria-hidden="true">
+    <div class="modal fade" id="inviteCollaboratorModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="inviteCollaboratorModalLabel">Invitar Colaborador</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="inviteCollaboratorForm">
@@ -205,12 +217,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteTaskModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteTaskModalLabel">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p>¿Estás seguro de que quieres eliminar esta tarea?</p>
@@ -224,12 +236,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteSubtaskModal" tabindex="-1" aria-labelledby="deleteSubtaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteSubtaskModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteSubtaskModalLabel">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p>¿Estás seguro de que quieres eliminar esta subtarea?</p>
@@ -243,12 +255,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editTaskModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editTaskModalLabel">Editar Tarea</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="editTaskForm">

@@ -11,7 +11,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="workspace">Administrador de Tareas</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -68,12 +68,6 @@
                         </form>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="card shadow">
-            <div class="card-body">
-                <h5 class="card-title">Resumen de Tareas</h5>
-                <div id="tasksSummary"></div>
             </div>
         </div>
     </div>
