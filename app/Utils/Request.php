@@ -10,7 +10,6 @@ class Request
 
     public function isRequestValid(string $operation, Req $request, array|null $requiredProperties = null, int|null $id = null): bool
     {
-        // Verifico que sea un json
         try {
             $data = $request->getJSON(true);
         } catch (\Throwable $th) {
@@ -27,13 +26,11 @@ class Request
                 break;
             case 'index':
             case 'show':
-                // Verifico que el id sea un numero y entero
                 if (!(is_numeric($id) && is_int($id))) {
                     return false;
                 }
                 break;
             case 'create':
-                // Verifico que tenga todas las propiedades requeridas en el request
                 foreach ($requiredProperties as $property) {
                     if (!array_key_exists($property, $data)) {
                         return false;
@@ -43,7 +40,6 @@ class Request
             case 'update':
                 $foundProperty = false;
 
-                // Verifico que el id sea un numero y entero
                 if (!(is_numeric($id) && is_int($id))) {
                     return false;
                 }
@@ -71,7 +67,6 @@ class Request
 
                 break;
             case 'delete':
-                // Verifico que el id sea un numero y entero
                 if (!(is_numeric($id) && is_int($id))) {
                     return false;
                 }

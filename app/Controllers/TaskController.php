@@ -101,7 +101,6 @@ class TaskController
     {
         $this->res = $this->taskValidator->validateData($taskData);
 
-        // Si la validación falla, se devuelve el error
         if (!$this->res->areDataValid) {
             return $this->res;
         }
@@ -126,7 +125,6 @@ class TaskController
         try {
             $this->res = $this->taskValidator->validateData($taskData, true);
 
-            // Si la validación falla, se devuelve el error
             if (!$this->res->areDataValid) {
                 return $this->res;
             }

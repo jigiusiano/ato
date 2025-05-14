@@ -73,7 +73,6 @@ class UserController
     {
         $this->res = $this->userValidator->validateData($userData);
 
-        // Si la validación falla, se devuelve el error
         if (!$this->res->areDataValid) {
             return $this->res;
         }
@@ -112,7 +111,6 @@ class UserController
 
             $this->res = $this->userValidator->validateData($userData, $user_db[0]);
 
-            // Si la validación falla, se devuelve el error
             if (!$this->res->areDataValid) {
                 return $this->res;
             }

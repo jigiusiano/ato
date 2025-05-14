@@ -6,12 +6,14 @@ use App\Models\TaskModel;
 use App\Models\SubtaskModel;
 use App\Utils\Response;
 use App\Controllers\Validators\SubtaskValidator;
+use App\Models\UserModel;
 
 class SubtaskController
 {
     private TaskModel $taskModel;
     private SubtaskModel $subtaskModel;
     private SubtaskValidator $subtaskValidator;
+    private UserModel $userModel;
     private Response $res;
 
     public function __construct()
@@ -19,6 +21,7 @@ class SubtaskController
         $this->taskModel = new TaskModel();
         $this->subtaskModel = new SubtaskModel();
         $this->subtaskValidator = new SubtaskValidator();
+        $this->userModel = new UserModel();
         $this->res = new Response();
     }
 
@@ -32,6 +35,19 @@ class SubtaskController
                 $this->res->message = "No hay subtareas registradas para esta tarea";
 
                 return $this->res;
+            }
+
+            for ($i = 0; $i < count($subtasks); $i++) {
+                $userData = $this->userModel->getById($subtasks[$i]["assignee"])[0];
+
+                if (count($userData) == 0) {
+                    throw new \Exception("El usuario asignado a la subtarea no existe");
+                }
+
+                $subtasks[$i]["assignee"] = [
+                    "id" => $userData["ID_user"],
+                    "name" => $userData["name"] . " " . $userData["surname"]
+                ];
             }
 
             $this->res->code = 200;
@@ -118,7 +134,6 @@ class SubtaskController
 
         $this->res = $this->subtaskValidator->validateData($subtaskData, false, $task[0]);
 
-        // Si la validación falla, se devuelve el error
         if (!$this->res->areDataValid) {
             return $this->res;
         }
@@ -175,7 +190,6 @@ class SubtaskController
         try {
             $this->res = $this->subtaskValidator->validateData($subtaskData, true, $task[0]);
 
-            // Si la validación falla, se devuelve el error
             if (!$this->res->areDataValid) {
                 return $this->res;
             }

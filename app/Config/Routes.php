@@ -13,24 +13,24 @@ $routes->get('/profile', 'ViewController::profile');
 
 $routes->post('/auth', 'Services\AuthService::login');
 $routes->post('/deauth', 'Services\AuthService::logout');     
-$routes->get('/users/(:num)', 'Services\UserService::show/$1', ['filter' => 'auth']);     // Obtener un usuario por ID (GET /users/5)
-$routes->post('/users', 'Services\UserService::create');            // Crear un nuevo usuario (POST /users)
-$routes->put('/users/(:num)', 'Services\UserService::update/$1', ['filter' => 'auth']);   // Actualizar un usuario por ID (PUT /users/5)
-$routes->delete('users/(:num)', 'Services\UserService::delete/$1', ['filter' => 'auth']); // Eliminar un usuario por ID (DELETE /users/5)
+$routes->get('/users/(:num)', 'Services\UserService::show/$1', ['filter' => 'auth']);
+$routes->post('/users', 'Services\UserService::create');
+$routes->put('/users/(:num)', 'Services\UserService::update/$1', ['filter' => 'auth']);
+$routes->delete('users/(:num)', 'Services\UserService::delete/$1', ['filter' => 'auth']);
 
-$routes->get('/tasks', 'Services\TaskService::index', ['filter' => 'auth']);              // Obtener todas las tareas (GET /tasks)
-$routes->get('/tasks/(:num)', 'Services\TaskService::show/$1', ['filter' => 'auth']);     // Obtener una tarea por ID (GET /tasks/5)
-$routes->post('/tasks', 'Services\TaskService::create', ['filter' => 'auth']);            // Crear una nueva tarea (POST /tasks)
-$routes->put('/tasks/(:num)', 'Services\TaskService::update/$1', ['filter' => 'auth']);   // Actualizar una tarea por ID (PUT /tasks/5)
-$routes->delete('tasks/(:num)', 'Services\TaskService::delete/$1', ['filter' => 'auth']); // Eliminar una tarea por ID (DELETE /tasks/5)
+$routes->get('/tasks', 'Services\TaskService::index', ['filter' => 'auth']);
+$routes->get('/tasks/(:num)', 'Services\TaskService::show/$1', ['filter' => 'auth']);
+$routes->post('/tasks', 'Services\TaskService::create', ['filter' => 'auth']);
+$routes->put('/tasks/(:num)', 'Services\TaskService::update/$1', ['filter' => 'auth']);
+$routes->delete('tasks/(:num)', 'Services\TaskService::delete/$1', ['filter' => 'auth']);
 
-$routes->get('/subtasks', 'Services\SubtaskService::index', ['filter' => 'auth']);              // Obtener todos las subtareas (GET /subtasks)
-$routes->get('/subtasks/(:num)', 'Services\SubtaskService::show/$1', ['filter' => 'auth']);     // Obtener una subtarea por ID (GET /subtasks/5)
-$routes->post('/subtasks', 'Services\SubtaskService::create', ['filter' => 'auth']);            // Crear una nueva subtarea (POST /subtasks)
-$routes->put('/subtasks/(:num)', 'Services\SubtaskService::update/$1', ['filter' => 'auth']);   // Actualizar una subtarea por ID (PUT /subtasks/5)
-$routes->delete('subtasks/(:num)', 'Services\SubtaskService::delete/$1', ['filter' => 'auth']); // Eliminar una subtarea por ID (DELETE /subtasks/5)
+$routes->get('/subtasks', 'Services\SubtaskService::index', ['filter' => 'auth']);
+$routes->get('/subtasks/(:num)', 'Services\SubtaskService::show/$1', ['filter' => 'auth']);
+$routes->post('/subtasks', 'Services\SubtaskService::create', ['filter' => 'auth']);
+$routes->put('/subtasks/(:num)', 'Services\SubtaskService::update/$1', ['filter' => 'auth']);
+$routes->delete('subtasks/(:num)', 'Services\SubtaskService::delete/$1', ['filter' => 'auth']);
 
-$routes->post('/invitations', 'Services\InvitationService::create', ['filter' => 'auth']);              // Crear una nueva invitacion (POST /invitations)
+$routes->post('/invitations', 'Services\InvitationService::create', ['filter' => 'auth']);
 $routes->get('/invitations/(:num)', 'Services\InvitationService::update/$1');  
 
-$routes->get('/collaborators', 'Services\CollaboratorService::index', ['filter' => 'auth']);              // Obtener todos los colaboradores (GET /collaborators)
+$routes->get('/collaborators', 'Services\CollaboratorService::index', ['filter' => 'auth']);

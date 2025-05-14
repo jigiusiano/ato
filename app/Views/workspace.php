@@ -142,6 +142,48 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editSubtaskModal" tabindex="-1" aria-labelledby="editSubtaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSubtaskModalLabel">Editar Subtarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editSubtaskForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editSubtaskId" name="subtaskId">
+                    <input type="hidden" id="editSubtaskTaskId" name="taskId">
+                    <div class="mb-3">
+                        <label for="editSubtaskDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="editSubtaskDescription" name="description" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSubtaskPriority" class="form-label">Prioridad (Opcional)</label>
+                        <select class="form-select" id="editSubtaskPriority" name="priority">
+                            <option value="">Ninguna</option>
+                            <option value="1">Baja</option>
+                            <option value="2">Normal</option>
+                            <option value="3">Alta</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSubtaskExpirationDate" class="form-label">Fecha de Vencimiento (Opcional)</label>
+                        <input type="datetime-local" class="form-control" id="editSubtaskExpirationDate" name="expiration_date">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSubtaskComment" class="form-label">Comentario (Opcional)</label>
+                        <textarea class="form-control" id="editSubtaskComment" name="comment"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
     <div class="modal fade" id="inviteCollaboratorModal" tabindex="-1" aria-labelledby="inviteCollaboratorModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -177,6 +219,25 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-danger" onclick="confirmDeleteTask()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteSubtaskModal" tabindex="-1" aria-labelledby="deleteSubtaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteSubtaskModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que quieres eliminar esta subtarea?</p>
+                    <input type="hidden" id="deleteSubtaskId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteSubtask()">Eliminar</button>
                 </div>
             </div>
         </div>

@@ -30,12 +30,6 @@ class UserModel {
         return $query->getResultArray();
     }
 
-    // public function getAll() {
-    //     $stmt = $db->prepare("SELECT * FROM users");
-    //     $stmt->execute();
-    //     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    // }
-
     public function updateById($userId, $userData): void {
         $fields = [];
         $values = [];

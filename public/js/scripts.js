@@ -1,27 +1,5 @@
 const URL_BASE = window.location.origin + '/ato';
 
-// Simulación de datos (reemplazar con llamadas a la API real)
-const mockTasks = [
-    { ID_task: 1, subject: "Preparar presentación", description: "Crear slides para reunión", priority: 3, stat: 1, expiration_date: "2025-04-25", reminder_date: null, color: "#ff0000", owner: 1, archived: 0 },
-    { ID_task: 2, subject: "Revisar informe", description: "Corregir errores en informe financiero", priority: 2, stat: 2, expiration_date: "2025-04-22", reminder_date: "2025-04-20", color: "#00ff00", owner: 2, archived: 0 }
-];
-
-const mockSubtasks = [
-    { ID_subtask: 1, description: "Redactar introducción", stat: 1, priority: null, expiration_date: null, cmt: null, task: 1, assignee: 1 },
-    { ID_subtask: 2, description: "Diseñar diapositivas", stat: 2, priority: 2, expiration_date: "2025-04-24", cmt: "Usar plantilla corporativa", task: 1, assignee: 2 }
-];
-
-const mockInvitations = [
-    { recipient: 1, task: 3, stat: 1 }
-];
-
-const mockUsers = [
-    { ID_user: 1, name: "Juan Pérez", email: "juan@example.com" },
-    { ID_user: 2, name: "María Gómez", email: "maria@example.com" }
-];
-
-const mockUser = { ID_user: 1, name: "Juan Pérez", email: "juan@example.com" };
-
 function login(event) {
     event.preventDefault();
     const email = document.getElementById('email').value;
@@ -198,16 +176,19 @@ async function toggleSubtasks(taskId) {
                 ${subtask.priority ? `<p><strong>Prioridad:</strong> ${['Baja', 'Normal', 'Alta'][subtask.priority - 1]}</p>` : ''}
                 ${subtask.expiration_date ? `<p><strong>Vencimiento:</strong> ${subtask.expiration_date}</p>` : ''}
                 ${subtask.cmt ? `<p><strong>Comentario:</strong> ${subtask.cmt}</p>` : ''}
-                <p><strong>Asignado a:</strong> ${mockUsers.find(u => u.ID_user === subtask.assignee)?.name || 'Desconocido'}</p>
+                <p><strong>Asignado a:</strong> ${subtask.assignee.name || 'Desconocido'}</p>
                 ${(isAssignee || isOwner) ? `
                     <select class="form-select w-auto d-inline-block" onchange="updateSubtaskStatus(${subtask.ID_subtask}, this.value)">
-                        <option value="1" ${subtask.stat === 1 ? 'selected' : ''}>Definido</option>
-                        <option value="2" ${subtask.stat === 2 ? 'selected' : ''}>En proceso</option>
-                        <option value="3" ${subtask.stat === 3 ? 'selected' : ''}>Completada</option>
+                        <option value="1" ${subtask.stat === "1" ? 'selected' : ''}>Definido</option>
+                        <option value="2" ${subtask.stat === "2" ? 'selected' : ''}>En proceso</option>
+                        <option value="3" ${subtask.stat === "3" ? 'selected' : ''}>Completada</option>
                     </select>
                 ` : ''}
+                ${(isAssignee || isOwner) ? `
+                    <button class="btn btn-sm btn-warning" onclick="prepareEditSubtaskForm(${subtask.ID_subtask}, ${taskId}, '${encodeURIComponent(JSON.stringify(subtask))}')">Editar</button>
+                ` : ''}
                 ${isOwner ? `
-                    <button class="btn btn-sm btn-danger" onclick="deleteSubtask(${subtask.ID_subtask}, ${taskId})">Eliminar</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteSubtask(${subtask.ID_subtask})">Eliminar</button>
                 ` : ''}
             `;
             subtasksDiv.appendChild(subtaskItem);
@@ -254,7 +235,6 @@ function createSubtask(event) {
         assignee: parseInt(document.getElementById('subtaskAssignee').value)
     };
 
-    // Validaciones
     if (!subtask.description.trim()) {
         alert('La descripción es obligatoria.');
         return;
@@ -282,6 +262,57 @@ function createSubtask(event) {
             }
         })
         .catch(error => console.log('EL ERROR: ', error?.message) ?? showToast('Ups!. Ocurrió un error al crear la subtarea', 4000, 'error'));
+}
+
+function prepareEditSubtaskForm(subtaskId, taskId, encodedSubtask) {
+    const subtask = JSON.parse(decodeURIComponent(encodedSubtask));
+
+    document.getElementById('editSubtaskId').value = subtask.ID_subtask;
+    document.getElementById('editSubtaskTaskId').value = taskId;
+    document.getElementById('editSubtaskDescription').value = subtask.description;
+    document.getElementById('editSubtaskPriority').value = subtask.priority || '';
+    document.getElementById('editSubtaskExpirationDate').value = subtask.expiration_date || '';
+    document.getElementById('editSubtaskComment').value = subtask.cmt || '';
+
+    const modal = new bootstrap.Modal(document.getElementById('editSubtaskModal'));
+    modal.show();
+}
+
+function updateSubtask(event) {
+    event.preventDefault();
+    const subtaskId = parseInt(document.getElementById('editSubtaskId').value);
+    const taskId = parseInt(document.getElementById('editSubtaskTaskId').value);
+    const subtask = {
+        description: document.getElementById('editSubtaskDescription').value,
+        priority: document.getElementById('editSubtaskPriority').value || undefined,
+        expiration_date: document.getElementById('editSubtaskExpirationDate').value || undefined,
+        cmt: document.getElementById('editSubtaskComment').value || undefined
+    };
+
+    if (!subtask.description.trim()) {
+        showToast('La descripción es obligatoria.', 4000, 'warning');
+        return;
+    }
+
+    fetch(`${URL_BASE}/subtasks/${subtaskId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify(subtask)
+    })
+        .then(response => response.json())
+        .then(response => {
+            if (response.code === 200) {
+                showToast(response.message, 4000, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('editSubtaskModal')).hide();
+                toggleSubtasks(taskId);
+            } else {
+                showToast(response.message, 4000, 'error');
+            }
+        })
+        .catch(error => showToast('Error al actualizar la subtarea.', 4000, 'error'));
 }
 
 function prepareInviteForm(taskId) {
@@ -340,7 +371,6 @@ function createTask(event) {
         task.reminder_date = reminder_date;
     }
 
-    // Validaciones
     if (!task.subject.trim() || !task.description.trim()) {
         showToast('Asunto y descripción son obligatorios', 4000, 'warning');
         return;
@@ -350,7 +380,6 @@ function createTask(event) {
         return;
     }
 
-    // Enviar al backend
     fetch(`${URL_BASE}/tasks`, {
         method: 'POST',
         headers: {
@@ -432,7 +461,6 @@ function updateTask(event) {
         task.reminder_date = reminder_date;
     }
 
-    // Validaciones
     if (!task.subject.trim() || !task.description.trim()) {
         showToast('Asunto y descripción son obligatorios', 4000, 'warning');
         return;
@@ -442,7 +470,6 @@ function updateTask(event) {
         return;
     }
 
-    // Enviar al backend
     fetch(`${URL_BASE}/tasks/${taskId}`, {
         method: 'PUT',
         headers: {
@@ -509,118 +536,55 @@ function archiveTask(taskId) {
         .catch(error => alert('Error: ' + error));
 }
 
-function deleteSubtask(subtaskId, taskId) {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta subtarea?')) return;
+function deleteSubtask(subtaskId) {
+    document.getElementById('deleteSubtaskId').value = subtaskId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteSubtaskModal'));
+    modal.show();
+}
 
-    // Enviar al backend
-    fetch(`/api/subtasks/${subtaskId}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        }
+function confirmDeleteSubtask() {
+    const subtaskId = document.getElementById('deleteSubtaskId').value;
+
+    fetch(`${URL_BASE}/subtasks/${subtaskId}`, {
+        method: 'DELETE'
     })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('Subtarea eliminada exitosamente.');
-                toggleSubtasks(taskId);
+            if (data.code == 200) {
+                showToast(data.message, 4000, 'success');
+                loadTasks();
             } else {
-                alert('Error al eliminar la subtarea. Solo el dueño puede eliminarla.');
+                showToast(data.message, 4000, 'error');
             }
         })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
+
+    bootstrap.Modal.getInstance(document.getElementById('deleteSubtaskModal')).hide();
 }
 
-function updateSubtaskStatus(subtaskId, status) {
-    // Enviar al backend
-    fetch(`/api/subtasks/${subtaskId}/status`, {
+async function updateSubtaskStatus(subtaskId, status) {
+    await fetch(`${URL_BASE}/subtasks/${subtaskId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
         },
         body: JSON.stringify({ stat: parseInt(status) })
     })
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Estado de la subtarea actualizado.');
-                const taskId = mockSubtasks.find(st => st.ID_subtask === subtaskId).task;
-                toggleSubtasks(taskId);
-            } else {
-                alert('Error al actualizar el estado. Solo el asignado puede modificarlo.');
-            }
-        })
-        .catch(error => alert('Error: ' + error));
-}
-
-function loadInvitations() {
-    // Obtener invitaciones desde el backend (simulado)
-    const invitations = mockInvitations.filter(inv => inv.recipient === mockUser.ID_user && inv.stat === 1);
-    const invitationsList = document.getElementById('invitationsList');
-    invitationsList.innerHTML = '';
-
-    invitations.forEach(inv => {
-        const item = document.createElement('div');
-        item.className = 'invitation-item list-group-item d-flex justify-content-between align-items-center';
-        item.innerHTML = `
-            Invitación para la tarea ${inv.task}
-            <div>
-                <button class="btn btn-sm btn-success" onclick="acceptInvitation(${inv.task})">Aceptar</button>
-                <button class="btn btn-sm btn-danger" onclick="rejectInvitation(${inv.task})">Rechazar</button>
-            </div>
-        `;
-        invitationsList.appendChild(item);
-    });
-}
-
-function acceptInvitation(taskId) {
-    fetch('/api/invitations/accept', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        },
-        body: JSON.stringify({ task: taskId, recipient: mockUser.ID_user })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Invitación aceptada.');
-                loadInvitations();
+        .then(response => {
+            if (response.code === 200) {
+                showToast(response.message, 4000, 'success');
                 loadTasks();
             } else {
-                alert('Error al aceptar la invitación.');
+                showToast(response.message, 4000, 'error');
             }
         })
-        .catch(error => alert('Error: ' + error));
-}
-
-function rejectInvitation(taskId) {
-    fetch('/api/invitations/reject', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('token')
-        },
-        body: JSON.stringify({ task: taskId, recipient: mockUser.ID_user })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Invitación rechazada.');
-                loadInvitations();
-            } else {
-                alert('Error al rechazar la invitación.');
-            }
-        })
-        .catch(error => alert('Error: ' + error));
+        .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
 function loadProfile() {
     const user_id = JSON.parse(localStorage.getItem('user')).id;
 
-    // Enviar solicitud al backend
     fetch(`${URL_BASE}/users/${user_id}`, {
         method: 'GET',
     })
@@ -634,7 +598,6 @@ function loadProfile() {
         })
         .catch(error => alert('Error al iniciar sesión: ' + error));
 
-    // Cargar resumen de tareas (simulado)
     const summary = document.getElementById('tasksSummary');
     summary.innerHTML = `
         <p><strong>Tareas Activas:</strong> ${mockTasks.filter(t => !t.archived).length}</p>
@@ -649,7 +612,6 @@ function updateProfile(event) {
     const surname = document.getElementById('surname').value;
     const email = document.getElementById('email').value;
 
-    // Validaciones
     if (name.trim() === '') {
         alert('El nombre no puede estar vacío.');
         return;
@@ -659,7 +621,6 @@ function updateProfile(event) {
         return;
     }
 
-    // Enviar al backend
     fetch(`${URL_BASE}/users/${user_id}`, {
         method: 'PUT',
         headers: {
@@ -683,13 +644,11 @@ function changePassword(event) {
     const user_id = JSON.parse(localStorage.getItem('user')).id;
     const pass = document.getElementById('pass').value;
 
-    // Validaciones
     if (pass.length < 6) {
         alert('La nueva contraseña debe tener al menos 6 caracteres.');
         return;
     }
 
-    // Enviar al backend
     fetch(`${URL_BASE}/users/${user_id}`, {
         method: 'PUT',
         headers: {
@@ -721,11 +680,12 @@ document.addEventListener('DOMContentLoaded', () => {
             break;
         case '/workspace':
             loadTasks();
-            loadInvitations();
             document.getElementById('createTaskForm').addEventListener('submit', createTask);
             document.getElementById('createSubtaskForm').addEventListener('submit', createSubtask);
             document.getElementById('inviteCollaboratorForm').addEventListener('submit', inviteCollaborator);
             document.getElementById('editTaskForm').addEventListener('submit', updateTask);
+            // document.getElementById('inviteCollaboratorForm').addEventListener('submit', inviteCollaborator);
+            document.getElementById('editSubtaskForm').addEventListener('submit', updateSubtask);
             break;
         case '/profile':
             loadProfile();
@@ -758,7 +718,6 @@ class Toast {
         this.element.setAttribute('role', 'alert');
         this.element.setAttribute('aria-live', 'polite');
 
-        // Type-specific icons
         const icons = {
             success: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`,
             error: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`,
@@ -766,7 +725,6 @@ class Toast {
             custom: `<svg class="custom-toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
         };
 
-        // Apply custom icon background color if provided
         if (this.type === 'custom' && this.options && this.options.iconColor) {
             this.element.style.setProperty('--custom-icon-bg', this.options.iconColor);
             this.element.querySelector('.custom-toast-icon')?.style.setProperty('background-color', this.options.iconColor);
@@ -784,10 +742,8 @@ class Toast {
 
         document.body.appendChild(this.element);
 
-        // Close button event
         this.element.querySelector('.custom-toast-close').addEventListener('click', () => this.hide());
 
-        // Auto-hide after duration
         setTimeout(() => this.hide(), this.duration);
     }
 
@@ -797,7 +753,7 @@ class Toast {
             if (this.element) {
                 this.element.remove();
             }
-        }, 300); // Wait for animation
+        }, 300);
     }
 }
 
