@@ -168,6 +168,7 @@ class TaskController
 
             return $this->res;
         } catch (\Throwable $th) {
+            echo $th->getMessage();
             $this->res->code = 500;
             $this->res->message = "Ocurrio un error al buscar la tarea";
 

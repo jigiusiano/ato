@@ -104,7 +104,19 @@ class TaskModel
 
     public function deleteById($taskId): void
     {
+        $this->db->transStart();
+
+        $this->db->query("DELETE FROM invitations WHERE task = ?", [$taskId]);
+        $this->db->query("DELETE FROM collaborators WHERE task = ?", [$taskId]);
+        $this->db->query("DELETE FROM subtasks WHERE task = ?", [$taskId]);
+
         $sql = "DELETE FROM tasks WHERE ID_task = ?";
         $this->db->query($sql, [$taskId]);
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === false) {
+            throw new \Exception("Error al eliminar la tarea.");
+        }
     }
 }
