@@ -18,7 +18,6 @@ function login(event) {
         .then(response => response.json())
         .then(response => {
             if (response.code === 200) {
-                console.log(response.data);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 localStorage.setItem('isLoggedIn', 'true');
                 window.location.href = `${URL_BASE}/workspace`;
@@ -128,7 +127,7 @@ async function loadTasks() {
                     <p><strong>Vencimiento:</strong> ${task.expiration_date}</p>
                     ${task.reminder_date ? `<p><strong>Recordatorio:</strong> ${task.reminder_date}</p>` : ''}
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-primary" onclick="toggleSubtasks(${task.ID_task})">Subtareas</button>
+                        <button class="btn btn-sm btn-primary" onclick="toggleSubtasks(${task.ID_task}, ${task.owner})">Subtareas</button>
                         ${isOwner ? `
                             <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#createSubtaskModal" onclick="prepareSubtaskForm(${task.ID_task})">Crear Subtarea</button>
                             <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#inviteCollaboratorModal" onclick="prepareInviteForm(${task.ID_task})">Invitar</button>
@@ -181,8 +180,12 @@ async function loadArchivedTasks() {
                     <p><strong>Vencimiento:</strong> ${task.expiration_date}</p>
                     ${task.reminder_date ? `<p><strong>Recordatorio:</strong> ${task.reminder_date}</p>` : ''}
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-primary" onclick="toggleSubtasks(${task.ID_task})">Subtareas</button>
-                        <button class="btn btn-sm btn-secondary" onclick="unarchiveTask(${task.ID_task})">Desarchivar</button>
+                        <button class="btn btn-sm btn-primary" onclick="toggleSubtasks(${task.ID_task}, ${task.owner}, true)">Subtareas</button>
+                        ${task.owner === user_id ? `
+                            <button class="btn btn-sm btn-warning" onclick="editTask(${task.ID_task})">Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.ID_task})">Eliminar</button>
+                            <button class="btn btn-sm btn-secondary" onclick="unarchiveTask(${task.ID_task})">Desarchivar</button>
+                        ` : ''}
                     </div>
                 </div>
                 <div id="subtasks-${task.ID_task}" class="subtask-list collapse"></div>
@@ -216,7 +219,7 @@ function unarchiveTask(taskId) {
         .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
-async function toggleSubtasks(taskId) {
+async function toggleSubtasks(taskId, owner = false, archived = false) {
     const user_id = JSON.parse(localStorage.getItem('user')).id;
     const subtasksDiv = document.getElementById(`subtasks-${taskId}`);
     const isShown = subtasksDiv.classList.contains('show');
@@ -236,8 +239,11 @@ async function toggleSubtasks(taskId) {
         subtasksDiv.innerHTML = '';
 
         subtasks.forEach(subtask => {
-            const isAssignee = true// subtask.assignee === mockUser.ID_user;
-            const isOwner = true// mockTasks.find(t => t.ID_task === taskId).owner === mockUser.ID_user;
+            const isTaskOwner = owner == user_id;
+            const isSubtaskAssignee = subtask.assignee.id == user_id;
+            const canEditSubtask = archived ? isTaskOwner : true;
+            const canChangeStatus = archived ? isTaskOwner : (isTaskOwner || isSubtaskAssignee);
+
             const subtaskItem = document.createElement('div');
             subtaskItem.className = 'subtask-item';
             subtaskItem.innerHTML = `
@@ -247,17 +253,22 @@ async function toggleSubtasks(taskId) {
                 ${subtask.expiration_date ? `<p><strong>Vencimiento:</strong> ${subtask.expiration_date}</p>` : ''}
                 ${subtask.cmt ? `<p><strong>Comentario:</strong> ${subtask.cmt}</p>` : ''}
                 <p><strong>Asignado a:</strong> ${subtask.assignee.name || 'Desconocido'}</p>
-                ${(isAssignee || isOwner) ? `
-                    <select class="form-select w-auto d-inline-block" onchange="updateSubtaskStatus(${subtask.ID_subtask}, this.value)">
-                        <option value="1" ${subtask.stat === "1" ? 'selected' : ''}>Definido</option>
-                        <option value="2" ${subtask.stat === "2" ? 'selected' : ''}>En proceso</option>
-                        <option value="3" ${subtask.stat === "3" ? 'selected' : ''}>Completada</option>
+                ${`
+                    <select class="form-select w-auto d-inline-block" onchange="updateSubtaskStatus(${subtask.ID_subtask}, this.value)" ${canChangeStatus ? '' : isSubtaskAssignee ? archived ? 'disabled' : '' : ''}>
+                        ${isTaskOwner ? `
+                            <option value="1" ${subtask.stat === "1" ? 'selected' : ''}>Definido</option>
+                            <option value="2" ${subtask.stat === "2" ? 'selected' : ''}>En proceso</option>
+                            <option value="3" ${subtask.stat === "3" ? 'selected' : ''}>Completada</option>
+                        ` : `
+                                <option value="2" ${subtask.stat === "2" ? 'selected' : ''}>En proceso</option>
+                                <option value="3" ${subtask.stat === "3" ? 'selected' : ''}>Completada</option>
+                            `}
                     </select>
-                ` : ''}
-                ${(isAssignee || isOwner) ? `
+                `}
+                ${canEditSubtask ? `
                     <button class="btn btn-sm btn-warning" onclick="prepareEditSubtaskForm(${subtask.ID_subtask}, ${taskId}, '${encodeURIComponent(JSON.stringify(subtask))}')">Editar</button>
                 ` : ''}
-                ${isOwner ? `
+                ${isTaskOwner ? `
                     <button class="btn btn-sm btn-danger" onclick="deleteSubtask(${subtask.ID_subtask})">Eliminar</button>
                 ` : ''}
             `;
@@ -548,6 +559,7 @@ function updateTask(event) {
                 showToast(response.message, 4000, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
                 loadTasks();
+                loadArchivedTasks();
             } else {
                 showToast(response.message, 4000, 'error');
             }
