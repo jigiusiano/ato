@@ -146,14 +146,6 @@ class SubtaskValidator
             return $this->res;
         }
 
-        if (property_exists($subtaskData, 'cmt') && !$this->isMinLengthValid($subtaskData->cmt, 3)) {
-            $this->res->code = 422;
-            $this->res->message = "El comentario es muy corto";
-            $this->res->areDataValid = false;
-
-            return $this->res;
-        }
-
         if (property_exists($subtaskData, 'task') && !$this->isTaskValid($subtaskData->task) && !$isUpdate) {
             $this->res->code = 422;
             $this->res->message = "La tarea no existe";

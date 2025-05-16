@@ -83,7 +83,6 @@ class InvitationController
                     <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
                         <tr>
                         <td align="center" bgcolor="#3366CC" style="padding: 30px 30px 20px 30px;">
-                            <img src="https://via.placeholder.com/120x50?text=ATO" alt="ATO Logo" style="display: block; width: 120px; height: 50px; margin: 0 auto;" />
                             <h1 style="color: #ffffff; font-family: 'Roboto', Arial, sans-serif; font-weight: 600; font-size: 24px; margin: 20px 0 0 0; text-align: center;">Has sido invitado a una nueva tarea</h1>
                         </td>
                         </tr>

@@ -367,7 +367,7 @@ function updateSubtask(event) {
         description: document.getElementById('editSubtaskDescription').value,
         priority: document.getElementById('editSubtaskPriority').value || undefined,
         expiration_date: document.getElementById('editSubtaskExpirationDate').value || undefined,
-        cmt: document.getElementById('editSubtaskComment').value || undefined
+        cmt: document.getElementById('editSubtaskComment').value ?? ''
     };
 
     if (!subtask.description.trim()) {
@@ -477,7 +477,6 @@ function createTask(event) {
 }
 
 function prepareEditTaskForm(taskId) {
-    const user_id = JSON.parse(localStorage.getItem('user')).id;
     fetch(`${URL_BASE}/tasks/${taskId}`, {
         method: 'GET',
         headers: {
@@ -488,16 +487,6 @@ function prepareEditTaskForm(taskId) {
         .then(response => {
             if (response.code === 200) {
                 const task = response.data[0];
-
-                if (task.owner !== user_id) {
-                    showToast(response.message, 4000, 'error');
-                    return;
-                }
-
-                if (!Boolean(Number(task.archived))) {
-                    showToast(response.message, 4000, 'error');
-                    return;
-                }
 
                 document.getElementById('editTaskId').value = task.ID_task;
                 document.getElementById('editTaskSubject').value = task.subject;
@@ -738,11 +727,58 @@ function changePassword(event) {
         .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
 }
 
+async function fetchAndDisplayReminders() {
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
+
+    try {
+        const response = await fetch(`${URL_BASE}/tasks?user=${user_id}&archived=false&reminders=true`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.code == 200) {
+                    return response;
+                } else {
+                    showToast(response?.message, 5000, 'error');
+                }
+            })
+            .catch(error => showToast('Ups!. Ocurrió un error, reintente nuevamente', 4000, 'error'));
+
+        const container = document.getElementById('reminders-container');
+        container.innerHTML = '';
+
+        if (response?.data?.length > 0) {
+            response.data.forEach(task => {
+                const reminderItem = document.createElement('div');
+                reminderItem.className = 'list-group-item';
+                const expirationDate = new Date(task.expiration_date);
+                reminderItem.innerHTML = `
+                    <div>
+                        La tarea <strong>${task.subject}</strong> está próxima a vencer.
+                    </div>
+                    <span class="badge text-bg-warning">
+                        Vence el ${expirationDate.toLocaleString().split(',')[0] + ' a las ' + expirationDate.toLocaleString().split(',')[1].split(' ')[1]}
+                    </span>
+                `;
+
+                container.appendChild(reminderItem);
+            });
+        } else {
+            container.innerHTML = '<div class="list-group-item">No hay recordatorios activos.</div>';
+        }
+    } catch (error) {
+        console.error('Error al cargar recordatorios:', error);
+    }
+}
+
 function initializeTabs() {
     const activeTab = document.querySelector('#active-tasks-tab');
     const archivedTab = document.querySelector('#archived-tasks-tab');
 
     loadTasks();
+    fetchAndDisplayReminders();
+    setInterval(fetchAndDisplayReminders, 5000);
 
     activeTab.addEventListener('shown.bs.tab', () => {
         loadTasks();

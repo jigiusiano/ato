@@ -24,6 +24,7 @@ class TaskService extends ResourceController
     {
         $user = $this->request->getGet('user');
         $archived = $this->request->getGet('archived') ?? false;
+        $reminders = $this->request->getGet('reminders') === 'true';
 
         if ($archived == "true") {
             $archived = 1;
@@ -33,14 +34,13 @@ class TaskService extends ResourceController
 
         if (!$this->req->isRequestValid("index", $this->request, null, $user)) {
             $this->res->code = 400;
-            $this->res->message = "Formato invalido";
-
+            $this->res->message = "Formato inválido";
             return $this->response
                 ->setJSON($this->res)
                 ->setStatusCode($this->res->code);
         }
 
-        $this->res = $this->taskController->getAllByIDUser($user, $archived);
+        $this->res = $this->taskController->getAllByIDUser($user, $archived, $reminders);
 
         return $this->response
             ->setJSON($this->res)
@@ -88,7 +88,7 @@ class TaskService extends ResourceController
 
     public function update($id = null)
     {
-        if (!$this->req->isRequestValid("update", $this->request, ['subject', 'description', 'priority', 'expiration_date', 'color', 'archived'], $id)) {
+        if (!$this->req->isRequestValid("update", $this->request, ['subject', 'description', 'priority', 'expiration_date', 'color'], $id, ['reminder_date', 'archived'])) {
             $this->res->code = 400;
             $this->res->message = "Formato invalido";
 

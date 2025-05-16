@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: rgb(51, 102, 204);">
         <div class="container-fluid">
             <a class="navbar-brand" href="workspace">Administrador de Tareas</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -48,6 +48,10 @@
 
         <div class="tab-content" id="taskTabsContent">
             <div class="tab-pane fade show active pt-3" id="active-tasks" role="tabpanel">
+                <div class="container mt-4">
+                    <h2>Notificaciones de Recordatorios</h2>
+                    <div id="reminders-container" class="list-group mb-4"></div>
+                </div>
                 <div class="d-flex justify-content-between mb-3">
                     <div>
                         <label for="sortTasks" class="form-label">Ordenar por:</label>
@@ -129,7 +133,6 @@
                         <div class="mb-3">
                             <label for="subtaskPriority" class="form-label">Prioridad (Opcional)</label>
                             <select class="form-select" id="subtaskPriority">
-                                <option value="">Ninguna</option>
                                 <option value="1">Baja</option>
                                 <option value="2">Normal</option>
                                 <option value="3">Alta</option>
@@ -172,7 +175,6 @@
                         <div class="mb-3">
                             <label for="editSubtaskPriority" class="form-label">Prioridad (Opcional)</label>
                             <select class="form-select" id="editSubtaskPriority" name="priority">
-                                <option value="">Ninguna</option>
                                 <option value="1">Baja</option>
                                 <option value="2">Normal</option>
                                 <option value="3">Alta</option>

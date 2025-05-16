@@ -19,32 +19,29 @@ class TaskController
         $this->res = new Response();
     }
 
-    public function getAllByIDUser($user, $archived): Response
+    public function getAllByIDUser($user, $archived, $reminders = false): Response
     {
         try {
-            $tasks = $this->taskModel->getAllByIDUser($user, $archived);
-            $tasksInvited = $this->taskModel->getAllByIDUserInvited($user, $archived);
+            $tasks = $this->taskModel->getAllByIDUser($user, $archived, $reminders);
+            $tasksInvited = $this->taskModel->getAllByIDUserInvited($user, $archived, $reminders);
 
             if (count($tasks) == 0 && count($tasksInvited) == 0) {
                 $this->res->code = 200;
-                $this->res->message = "No hay tareas registradas para este usuario";
+                $this->res->message = $reminders ? "No hay tareas con recordatorios activos" : "No hay tareas registradas para este usuario";
                 $this->res->data = [];
-
                 return $this->res;
             }
 
             $tasks = array_merge($tasks, $tasksInvited);
 
             $this->res->code = 200;
-            $this->res->message = "Las tareas fueron encontradas con exito";
+            $this->res->message = $reminders ? "Tareas con recordatorios activos encontradas" : "Las tareas fueron encontradas con éxito";
             $this->res->data = $tasks;
 
             return $this->res;
         } catch (\Throwable $th) {
-            echo $th->getMessage();
             $this->res->code = 500;
-            $this->res->message = "Ocurrio un error al buscar las tareas";
-
+            $this->res->message = "Ocurrió un error al buscar las tareas";
             return $this->res;
         }
     }

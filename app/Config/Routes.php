@@ -34,3 +34,5 @@ $routes->post('/invitations', 'Services\InvitationService::create', ['filter' =>
 $routes->get('/invitations/(:num)', 'Services\InvitationService::update/$1');  
 
 $routes->get('/collaborators', 'Services\CollaboratorService::index', ['filter' => 'auth']);
+
+$routes->get('/notifications', 'Services\NotificationService::index', ['filter' => 'auth']);

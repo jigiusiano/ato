@@ -47,34 +47,42 @@ class TaskModel
         return $query->getResultArray();
     }
 
-    public function getAllByIDUser($owner, $archived): array
+    public function getAllByIDUser($owner, $archived, $reminders = false): array
     {
         $sql = "SELECT * FROM tasks WHERE owner = ? AND archived = ?";
-        $query = $this->db->query($sql, [$owner, $archived]);
+        $params = [$owner, $archived];
 
+        if ($reminders) {
+            $sql .= " AND reminder_date IS NOT NULL AND reminder_date <= NOW() AND expiration_date > NOW()";
+        }
+
+        $query = $this->db->query($sql, $params);
         return $query->getResultArray();
     }
 
-    public function getAllByIDUserInvited($user, $archived): array
+    public function getAllByIDUserInvited($user, $archived, $reminders = false): array
     {
         $sql = "SELECT 
-                    t.ID_task,
-                    t.subject,
-                    t.description,
-                    t.expiration_date,
-                    t.reminder_date,
-                    t.color,
-                    t.owner,
-                    t.archived,
-                    t.stat,
-                    t.priority
-                FROM collaborators c
-                JOIN tasks t ON c.task = t.ID_task
-                WHERE c.collaborator = ? AND t.archived = ?;
-        ";
+                t.ID_task,
+                t.subject,
+                t.description,
+                t.expiration_date,
+                t.reminder_date,
+                t.color,
+                t.owner,
+                t.archived,
+                t.stat,
+                t.priority
+            FROM collaborators c
+            JOIN tasks t ON c.task = t.ID_task
+            WHERE c.collaborator = ? AND t.archived = ?";
+        $params = [$user, $archived];
 
-        $query = $this->db->query($sql, [$user, $archived]);
+        if ($reminders) {
+            $sql .= " AND t.reminder_date IS NOT NULL AND t.reminder_date <= NOW() AND t.expiration_date > NOW()";
+        }
 
+        $query = $this->db->query($sql, $params);
         return $query->getResultArray();
     }
 
