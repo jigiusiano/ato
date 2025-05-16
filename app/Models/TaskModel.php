@@ -55,11 +55,34 @@ class TaskModel
         return $query->getResultArray();
     }
 
+    public function getAllByIDUserInvited($user, $archived): array
+    {
+        $sql = "SELECT 
+                    t.ID_task,
+                    t.subject,
+                    t.description,
+                    t.expiration_date,
+                    t.reminder_date,
+                    t.color,
+                    t.owner,
+                    t.archived,
+                    t.stat,
+                    t.priority
+                FROM collaborators c
+                JOIN tasks t ON c.task = t.ID_task
+                WHERE c.collaborator = ? AND t.archived = ?;
+        ";
+
+        $query = $this->db->query($sql, [$user, $archived]);
+
+        return $query->getResultArray();
+    }
+
     public function updateById($taskId, $taskData): void
     {
         $fields = [];
         $values = [];
-        
+
         foreach ($taskData as $key => $value) {
             $fields[] = "$key = ?";
             $values[] = $value;

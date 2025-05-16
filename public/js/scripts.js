@@ -88,7 +88,7 @@ function logout() {
 async function loadTasks() {
     const user_id = JSON.parse(localStorage.getItem('user')).id;
 
-    const data = await fetch(`${URL_BASE}/tasks?owner=${user_id}&archived=false`, {
+    const data = await fetch(`${URL_BASE}/tasks?user=${user_id}&archived=false`, {
         method: 'GET',
     })
         .then(response => response.json())
@@ -151,7 +151,7 @@ async function loadTasks() {
 async function loadArchivedTasks() {
     const user_id = JSON.parse(localStorage.getItem('user')).id;
 
-    const tasks = await fetch(`${URL_BASE}/tasks?owner=${user_id}&archived=true`, {
+    const tasks = await fetch(`${URL_BASE}/tasks?user=${user_id}&archived=true`, {
         method: 'GET',
     })
         .then(response => response.json())
@@ -217,10 +217,11 @@ function unarchiveTask(taskId) {
 }
 
 async function toggleSubtasks(taskId) {
+    const user_id = JSON.parse(localStorage.getItem('user')).id;
     const subtasksDiv = document.getElementById(`subtasks-${taskId}`);
     const isShown = subtasksDiv.classList.contains('show');
 
-    const subtasks = await fetch(`${URL_BASE}/subtasks?task=${taskId}`, {
+    const subtasks = await fetch(`${URL_BASE}/subtasks?task=${taskId}&user=${user_id}`, {
         method: 'GET',
     })
         .then(response => response.json())
@@ -591,7 +592,7 @@ function archiveTask(taskId) {
         .then(response => response.json())
         .then(response => {
             if (response.code === 200) {
-                showToast(response.message, 4000,'success');
+                showToast(response.message, 4000, 'success');
                 loadTasks();
             } else {
                 showToast(response.message, 4000, 'error');

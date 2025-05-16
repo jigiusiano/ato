@@ -19,18 +19,21 @@ class TaskController
         $this->res = new Response();
     }
 
-    public function getAllByIDUser($owner, $archived): Response
+    public function getAllByIDUser($user, $archived): Response
     {
         try {
-            $tasks = $this->taskModel->getAllByIDUser($owner, $archived);
+            $tasks = $this->taskModel->getAllByIDUser($user, $archived);
+            $tasksInvited = $this->taskModel->getAllByIDUserInvited($user, $archived);
 
-            if (count($tasks) == 0) {
+            if (count($tasks) == 0 && count($tasksInvited) == 0) {
                 $this->res->code = 200;
                 $this->res->message = "No hay tareas registradas para este usuario";
                 $this->res->data = [];
 
                 return $this->res;
             }
+
+            $tasks = array_merge($tasks, $tasksInvited);
 
             $this->res->code = 200;
             $this->res->message = "Las tareas fueron encontradas con exito";

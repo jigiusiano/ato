@@ -25,40 +25,42 @@ class SubtaskController
         $this->res = new Response();
     }
 
-    public function getAllByIDTask($task): Response
+    public function getAllByIDTaskAndIDUser($task, $user): Response
     {
         try {
-            $subtasks = $this->subtaskModel->getAllByIDTask($task);
+            $subtasksOwner = $this->subtaskModel->getAllByIDTask($task, $user);
+            $subtasksInvited = $this->subtaskModel->getAllByIDUserInvitedByTask($task, $user);
 
-            if (count($subtasks) == 0) {
-                $this->res->code = 404;
-                $this->res->message = "No hay subtareas registradas para esta tarea";
-
+            if (count($subtasksOwner) === 0 && count($subtasksInvited) === 0) {
+                $this->res->code = 200;
+                $this->res->data = [];
+                $this->res->message = "No hay subtareas registradas";
                 return $this->res;
             }
 
-            for ($i = 0; $i < count($subtasks); $i++) {
-                $userData = $this->userModel->getById($subtasks[$i]["assignee"])[0];
+            $subtasks = array_merge($subtasksOwner, $subtasksInvited);
 
-                if (count($userData) == 0) {
+            foreach ($subtasks as &$subtask) {
+                $userData = $this->userModel->getById($subtask["assignee"])[0] ?? null;
+
+                if (!$userData) {
                     throw new \Exception("El usuario asignado a la subtarea no existe");
                 }
 
-                $subtasks[$i]["assignee"] = [
+                $subtask["assignee"] = [
                     "id" => $userData["ID_user"],
                     "name" => $userData["name"] . " " . $userData["surname"]
                 ];
             }
 
             $this->res->code = 200;
-            $this->res->message = "Las subtareas fueron encontradas con exito";
+            $this->res->message = "Las subtareas fueron encontradas con éxito";
             $this->res->data = $subtasks;
 
             return $this->res;
         } catch (\Throwable $th) {
             $this->res->code = 500;
-            $this->res->message = "Ocurrio un error al buscar las subtareas";
-
+            $this->res->message = "Ocurrió un error al buscar las subtareas";
             return $this->res;
         }
     }
@@ -167,17 +169,17 @@ class SubtaskController
 
             try {
                 $task = $this->taskModel->getById($subtask[0]["task"]);
-    
+
                 if (count($task) == 0) {
                     $this->res->code = 404;
                     $this->res->message = "La tarea principal no existe";
-    
+
                     return $this->res;
                 }
             } catch (\Throwable $th) {
                 $this->res->code = 500;
                 $this->res->message = "Ocurrio un error al encontrar la tarea principal";
-    
+
                 return $this->res;
             }
         } catch (\Throwable $th) {

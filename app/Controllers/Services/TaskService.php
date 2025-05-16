@@ -22,7 +22,7 @@ class TaskService extends ResourceController
 
     public function index()
     {
-        $owner = $this->request->getGet('owner');
+        $user = $this->request->getGet('user');
         $archived = $this->request->getGet('archived') ?? false;
 
         if ($archived == "true") {
@@ -31,28 +31,20 @@ class TaskService extends ResourceController
             $archived = 0;
         }
 
-        if ($owner) {
-            if (!$this->req->isRequestValid("index", $this->request, null, $owner)) {
-                $this->res->code = 400;
-                $this->res->message = "Formato invalido";
-    
-                return $this->response
-                    ->setJSON($this->res)
-                    ->setStatusCode($this->res->code);
-            }
-
-            $this->res = $this->taskController->getAllByIDUser($owner, $archived);
+        if (!$this->req->isRequestValid("index", $this->request, null, $user)) {
+            $this->res->code = 400;
+            $this->res->message = "Formato invalido";
 
             return $this->response
                 ->setJSON($this->res)
                 ->setStatusCode($this->res->code);
         }
 
-        $this->res = $this->taskController->index();
+        $this->res = $this->taskController->getAllByIDUser($user, $archived);
 
         return $this->response
-                ->setJSON($this->res)
-                ->setStatusCode($this->res->code);
+            ->setJSON($this->res)
+            ->setStatusCode($this->res->code);
     }
 
     public function show($id = null)

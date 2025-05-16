@@ -47,10 +47,46 @@ class SubtaskModel
         return $query->getResultArray();
     }
 
-    public function getAllByIDTask($task): array
+    public function getAllByIDTask($task, $user): array
     {
-        $sql = "SELECT * FROM subtasks WHERE task = ?";
-        $query = $this->db->query($sql, [$task]);
+        $sql = "SELECT 
+                    st.ID_subtask,
+                    st.description,
+                    st.expiration_date,
+                    st.cmt,
+                    st.assignee,
+                    st.stat,
+                    st.priority
+                FROM tasks t
+                JOIN subtasks st ON t.ID_task = st.task
+                WHERE t.owner = ?
+                AND t.ID_task = ?;
+        ";
+
+        $query = $this->db->query($sql, [$user, $task]);
+
+        return $query->getResultArray();
+    }
+
+    public function getAllByIDUserInvitedByTask($task, $user): array
+    {
+        $sql = "SELECT 
+                    st.ID_subtask,
+                    st.description,
+                    st.expiration_date,
+                    st.cmt,
+                    st.assignee,
+                    st.stat,
+                    st.priority,
+                    st.task
+                FROM collaborators c
+                JOIN subtasks st ON c.task = st.task
+                WHERE c.collaborator = ?
+                AND st.assignee = ?
+                AND c.task = ?;
+        ";
+
+        $query = $this->db->query($sql, [$user, $user, $task]);
 
         return $query->getResultArray();
     }
@@ -59,7 +95,7 @@ class SubtaskModel
     {
         $fields = [];
         $values = [];
-        
+
         foreach ($subtaskData as $key => $value) {
             $fields[] = "$key = ?";
             $values[] = $value;

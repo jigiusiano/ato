@@ -23,25 +23,27 @@ class SubtaskService extends ResourceController
     public function index()
     {
         $task = $this->request->getGet('task');
+        $user = $this->request->getGet('user');
 
-        if ($task) {
-            if (!$this->req->isRequestValid("index", $this->request, null, $task)) {
-                $this->res->code = 400;
-                $this->res->message = "Formato invalido";
-
-                return $this->response
-                    ->setJSON($this->res)
-                    ->setStatusCode($this->res->code);
-            }
-
-            $this->res = $this->subtaskController->getAllByIDTask($task);
+        if (!$this->req->isRequestValid("index", $this->request, null, $task)) {
+            $this->res->code = 400;
+            $this->res->message = "Formato invalido";
 
             return $this->response
                 ->setJSON($this->res)
                 ->setStatusCode($this->res->code);
         }
 
-        $this->res = $this->subtaskController->index();
+        if (!$this->req->isRequestValid("index", $this->request, null, $task)) {
+            $this->res->code = 400;
+            $this->res->message = "Formato invalido";
+
+            return $this->response
+                ->setJSON($this->res)
+                ->setStatusCode($this->res->code);
+        }
+
+        $this->res = $this->subtaskController->getAllByIDTaskAndIDUser($task, $user);
 
         return $this->response
             ->setJSON($this->res)
